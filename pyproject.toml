@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "ResumeTailor V1 — PDF resume tailoring with GitHub Models"
 requires-python = ">=3.11"
 dependencies = [
-    "Django==4.2",
+    "Django==4.2.26",
     "celery==5.3",
     "redis==5.0",
     "psycopg2-binary==2.9",
