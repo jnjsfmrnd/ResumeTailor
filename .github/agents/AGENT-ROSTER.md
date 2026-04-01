@@ -8,6 +8,7 @@
 4. engineer-c
 5. engineer-d
 6. engineer-e
+7. interview-prep-tutor
 
 ## Skill Assignment
 
@@ -47,6 +48,12 @@
 2. operations/github-actions-workflows
 3. testing/production-readiness
 
+### interview-prep-tutor
+
+1. development/documentation
+2. development/code-review
+3. architecture/core-principles
+
 ## Story Ownership
 
 1. platform-lead -> L1, L2
@@ -76,3 +83,4 @@ The day numbers are a sequencing guide, not a calendar constraint. If a lane fin
 - Planning-first controls remain active.
 - Implementation starts only after explicit CEO authorization.
 - The 10-day schedule is a sequencing guide only; lanes may complete ahead of schedule and must hand off immediately without waiting for the day boundary.
+- Interview prep must stay grounded in actual repository artifacts and must not overstate implementation maturity.
