@@ -7,3 +7,5 @@
 - 2026-04-01: When scope changes, update prototype, repo memory, and council review artifacts in the same pass to avoid stale retrieval-led guidance.
 - 2026-04-01: Artifact-sync is counted complete only when referenced files physically exist in the repository.
 - 2026-04-01: Planning-only mode is enforced until CEO gives explicit implementation authorization.
+- 2026-04-01: Interview-prep assets live under docs/coaching and must stay grounded in actual repo artifacts, explicitly separating planning decisions from implemented behavior.
+- 2026-04-01: Approval artifacts must verify semantic consistency, not only file existence, before using CEO-ready language.
