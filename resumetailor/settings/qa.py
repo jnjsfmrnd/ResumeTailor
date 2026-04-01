@@ -4,18 +4,20 @@ Extends base settings for the hosted QA environment in Azure (eastus).
 Secrets are injected via environment variables backed by Azure Key Vault references.
 """
 
+import os
+
 from .base import *  # noqa: F401, F403
 
 DEBUG = False
 
 # QA host is configured at deployment time via environment variable.
-ALLOWED_HOSTS = os.environ["DJANGO_ALLOWED_HOSTS"].split()  # noqa: F405
+ALLOWED_HOSTS = os.environ["DJANGO_ALLOWED_HOSTS"].split()
 
 # Storage: Azure Blob via django-storages
 DEFAULT_FILE_STORAGE = "storages.backends.azure_storage.AzureStorage"
-AZURE_ACCOUNT_NAME = os.environ["AZURE_STORAGE_ACCOUNT"]  # noqa: F405
-AZURE_ACCOUNT_KEY = os.environ["AZURE_STORAGE_KEY"]  # noqa: F405
-AZURE_CONTAINER = os.environ.get("AZURE_STORAGE_CONTAINER", "resumetailor-qa")  # noqa: F405
+AZURE_ACCOUNT_NAME = os.environ["AZURE_STORAGE_ACCOUNT"]
+AZURE_ACCOUNT_KEY = os.environ["AZURE_STORAGE_KEY"]
+AZURE_CONTAINER = os.environ.get("AZURE_STORAGE_CONTAINER", "resumetailor-qa")
 
 # Security
 SESSION_COOKIE_SECURE = True
