@@ -10,21 +10,23 @@
 Use this framing first so your explanation is accurate and strong:
 
 - ResumeTailor is an AI-assisted resume tailoring system designed around controlled document editing, grounded generation, mandatory human review, and QA-first operational boundaries.
-- The repository is planning-complete and architecture-rich, with implementation intentionally blocked pending explicit authorization.
+- The repository has transitioned from planning-complete to active implementation. The foundation is in place: shared contracts are frozen, the core Django domain models exist, and the dependency baseline is security-patched. Lane-by-lane feature work is now underway.
 - Describe the runtime posture as single-user and QA-first, not local-first, because the planned validation environment is hosted.
 - The senior-level value of the project is in the decisions, constraints, delivery slicing, and risk management, not in pretending it is already a production-hardened system.
 
 ## 2. The 30-Second Answer
 
-ResumeTailor is a Django-based AI-assisted workflow for taking a PDF resume and a target job description, generating a tailored resume and optional cover letter, requiring human review before export, and preparing a QA-only Azure deployment path. The interesting engineering work was not basic CRUD. It was deciding how to handle PDF fidelity, grounded generation, API key safety, deterministic evaluation, and tight V1 scope control so the system stayed useful without becoming operationally bloated.
+ResumeTailor is a Django-based AI-assisted workflow for taking a PDF resume and a target job description, generating a tailored resume and optional cover letter, requiring human review before export, and preparing a QA-only Azure deployment path. The foundation is live: the dependency baseline is security-patched, shared contracts are frozen at v1.0.0, and the core domain models are implemented. Lane-by-lane feature delivery is now underway. The interesting engineering work was not basic CRUD. It was deciding how to handle PDF fidelity, grounded generation, API key safety, deterministic evaluation, and tight V1 scope control so the system stayed useful without becoming operationally bloated.
 
 ## 3. The 2-Minute Answer
 
 I worked on ResumeTailor as a tightly scoped AI workflow product. The user uploads a digital PDF resume, pastes a job description, selects a GitHub Models-backed generation path, optionally asks for a cover letter, reviews and edits the output, and then exports approved PDFs. The main challenge was balancing AI assistance with deterministic controls.
 
-From an architecture perspective, we chose a Django monolith with PostgreSQL, Celery, and Redis because V1 is single-user, QA-first, and planning-only. That let us keep the system simple while still separating web requests, background generation work, persistence, and queueing. We intentionally limited model access to GitHub Models only, with a curated top-5 shortlist, to reduce provider sprawl, credential complexity, and the test matrix.
+From an architecture perspective, we chose a Django monolith with PostgreSQL, Celery, and Redis because V1 is single-user and QA-first. That let us keep the system simple while still separating web requests, background generation work, persistence, and queueing. We intentionally limited model access to GitHub Models only, with a curated top-5 shortlist, to reduce provider sprawl, credential complexity, and the test matrix.
 
 We also made some explicit trust and safety decisions. User-supplied API keys are in-memory only and never persisted. Human review is mandatory before export. Release blocking relies on deterministic checks and human grounding review rather than LLM-as-judge. We also constrained deployment to one QA environment in eastus using Azure Container Apps and Bicep, because the senior decision here was to avoid pretending we had production requirements before the product and document workflow risks were better understood.
+
+The foundation work is in place. We security-patched Django to 4.2.26 before writing any feature code, froze all five shared contracts at v1.0.0 with CI enforcement, implemented the core domain models (ResumeSession, ResumeSection, CoverLetterDraft, GenerationRun), and registered all five Django apps. Parallel lane delivery is now unblocked.
 
 ## 4. The Whiteboard Architecture Walkthrough
 
@@ -189,6 +191,7 @@ Go deeper on:
 - Do not claim real scalability numbers you do not have.
 - Do not say microservices were unnecessary forever; say they were unnecessary for this phase.
 - Do not overclaim AI reliability.
+- Do not say the project is still planning-only; the foundation PR landed and implementation is underway.
 - Do not pretend the planning-first posture makes the project less real. It makes the decision quality more visible.
 
 ## 8. Strong Follow-Up Answers
@@ -211,7 +214,7 @@ Because senior engineers are expected to make sound architectural decisions befo
 
 ### What would you build next if implementation were approved?
 
-I would freeze contracts first, implement session and upload handling, build PDF parsing and supported-file gating, add the generation lane with strict key handling, then implement review/export, and finally wire QA validation into the Azure path.
+Implementation has started. Contracts are frozen and the core models are implemented. The next steps are feature-lane delivery: Engineer A implements session creation and upload handling; Engineer B builds the PDF parsing gate; Engineer C wires the GitHub Models generation path with strict key handling; Engineer D builds the review/export UI; Engineer E validates the Azure QA deployment path.
 
 ## 9. Interviewer Questions You Should Practice
 
@@ -247,3 +250,59 @@ If I needed to summarize the project in one line during an interview, I would sa
 - UX: docs/ux/UX-0001.md
 - Evaluation plan: docs/data-science/EVAL-PLAN-0001.md
 - Deployment plan: docs/deployment/AZURE-DEPLOYMENT-0001.md
+
+## 13. How to Explain PR #2 (Foundation PR)
+
+PR #2 is titled "Bump Django 4.2 → 4.2.26 to fix SQL injection and DoS CVEs" but it is actually the foundation PR that transitions the project from planning-only scaffold to active implementation. It has three distinct themes. Explain them in this order.
+
+### Theme 1: Security hygiene first (the 15-second lead)
+
+> "Before writing a single line of feature code, we patched the Django dependency. The unpinned `Django==4.2` carried four known CVEs: two SQL injection paths via column aliases and QuerySet connector handling, an Oracle-specific SQL injection in HasKey lookups, and a denial-of-service in the intcomma template filter. Pinning to 4.2.26 resolved all four. The decision to do this before any feature work is a deliberate signal: we treat security as a precondition, not an afterthought."
+
+Why this lands well: it is concrete, it names the specific vulnerability classes, and it shows discipline.
+
+### Theme 2: Implementation activation (the context pivot)
+
+> "This PR also formally moved the project from a planning-only scaffold to an active implementation. The `manage.py` had been intentionally stubbed to block execution until authorization was given. In this PR, it became a real Django management entry point. The `pyproject.toml` version moved from `0.0.0-planning` to `0.1.0` and the `requirements.txt` moved from intentionally empty to a real pinned dependency set covering Django, Celery, Redis, psycopg2, PyMuPDF, the OpenAI SDK, and Azure storage."
+
+Why this lands well: it shows the project had deliberate pre-implementation controls, not just a messy start.
+
+### Theme 3: Foundation work that unblocks parallel delivery (the depth answer)
+
+> "The largest part of the PR is the foundation that enables all five engineers to work in parallel without stepping on each other. It has three components."
+
+**Component A — Contract freeze:**
+
+> "We published and froze all five shared contracts at v1.0.0: session schema, section output schema, cover letter draft schema, generation service interface, and export service interface. A version registry in `docs/contracts/CONTRACT-VERSION.md` records the version, owner, and freeze status for each. The contract gate CI workflow enforces that all five files are present, each carries a version header, and all are listed in the registry. Any MAJOR or MINOR change requires a platform lead approval and a migration note. This gives each engineer a stable target to build against."
+
+**Component B — Core domain models:**
+
+> "The `resume_sessions` Django app contains all four domain models: `ResumeSession`, `ResumeSection`, `CoverLetterDraft`, and `GenerationRun`. These are direct implementations of the frozen contracts. A few design points worth emphasizing: bounding box coordinates are stored as four individual float fields on `ResumeSection` to avoid JSON blob opacity; `ResumeSection.resolved_content` is a property that applies the contract-specified precedence rule (user_edited → tailored → original) in one place; `CoverLetterDraft` uses a OneToOneField to enforce the invariant that only one draft can exist per session; and no raw API key is ever stored on any model."
+
+**Component C — App scaffolding and integration infrastructure:**
+
+> "The remaining four Django apps — `document_ingestion`, `document_rendering`, `generation`, and `evaluation` — are registered with empty model files. This is deliberate. It means each lane can add models and migrations to their app without merge conflicts. The integration docs add a daily gate checklist and a blocker log, which are the operational controls the platform lead uses to coordinate cross-lane work."
+
+### How to tie it together in one answer
+
+If asked to summarize the whole PR in two or three sentences:
+
+> "PR #2 is the foundation PR. It does three things: patches Django to remove four security CVEs before any feature code lands, activates the project from planning scaffold to a real Django implementation, and delivers the shared contracts, core domain models, and CI enforcement that let five engineers build in parallel without conflicting. Everything that comes after it builds on what this PR establishes."
+
+### Follow-up questions you may face after explaining PR #2
+
+**Q: Why freeze contracts before writing feature code?**
+
+> Because parallel delivery fails without stable interfaces. If Engineer C starts generation logic before the session schema is frozen, they will need to refactor every time Engineer A changes a session field. Freezing first means each lane has a target they can trust. The cost is one day of lead time; the benefit is no merge-conflict cascades during the sprint.
+
+**Q: Why store bounding box as four separate float fields instead of a JSON field?**
+
+> Two reasons. First, individual float fields are directly queryable and indexable without JSON path overhead. Second, they make the `x0 < x1` and `y0 < y1` invariants enforceable at the database level or in clean model validation rather than buried in serializer logic. The schema is predictable, not dynamic.
+
+**Q: Why is the contract gate a CI workflow rather than just a code review convention?**
+
+> Code review conventions drift. A GitHub Actions workflow that fails the build when a contract file is missing or lacks a version header does not drift. It enforces the rule on every PR, including the ones where the reviewer forgets to check.
+
+**Q: Why were the other four apps scaffolded empty rather than given models immediately?**
+
+> Because their models depend on implementation decisions that belong to each lane's engineer. Scaffolding the app registrations unblocks each lane to create migrations in the right app namespace without stepping on `resume_sessions`. Empty is intentional, not incomplete.

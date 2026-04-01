@@ -8,10 +8,10 @@
 
 ### Acceptance Criteria
 
-- [ ] Session schema is documented.
-- [ ] Section output schema is documented.
-- [ ] Cover letter draft schema is documented.
-- [ ] Generation and export service interfaces are documented.
+- [x] Session schema is documented.
+- [x] Section output schema is documented.
+- [x] Cover letter draft schema is documented.
+- [x] Generation and export service interfaces are documented.
 
 ## Story 1: Upload PDF and Create Session
 
@@ -140,9 +140,9 @@ After Story 0 is complete, 5 engineers can work in parallel with low overlap.
 
 Acceptance Criteria
 
-- [ ] Contract files are published for session schema, section schema, cover letter schema, generation interface, and export interface.
-- [ ] Each contract has a version tag and owner.
-- [ ] Any contract change requires a version bump and change note.
+- [x] Contract files are published for session schema, section schema, cover letter schema, generation interface, and export interface.
+- [x] Each contract has a version tag and owner.
+- [x] Any contract change requires a version bump and change note.
 
 #### Lead Story L2: Integration Gate Control
 
