@@ -280,7 +280,9 @@ Acceptance Criteria
 - [ ] Eval baseline manifest is present and versioned.
 - [ ] QA checklist execution path is documented.
 
-## Schedule of Work (10-Day Plan)
+## Schedule of Work (10-Day Guide)
+
+The day numbers represent a suggested sequencing, not a hard calendar gate. Lanes that finish early hand off immediately and downstream lanes begin without waiting for the day boundary. The goal is working software, not calendar compliance.
 
 ### Week 1
 

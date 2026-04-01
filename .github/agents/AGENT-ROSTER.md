@@ -56,7 +56,9 @@
 5. engineer-d -> D1, D2
 6. engineer-e -> E1, E2
 
-## 10-Day Schedule Mapping
+## Schedule Mapping (10-Day Guide)
+
+The day numbers are a sequencing guide, not a calendar constraint. If a lane finishes early, the next dependent lane starts immediately — do not wait for the day boundary.
 
 1. Day 1: platform-lead (L1)
 2. Day 2: engineer-a (A1, A2), engineer-b (B1), engineer-e (E1)
@@ -73,3 +75,4 @@
 
 - Planning-first controls remain active.
 - Implementation starts only after explicit CEO authorization.
+- The 10-day schedule is a sequencing guide only; lanes may complete ahead of schedule and must hand off immediately without waiting for the day boundary.
