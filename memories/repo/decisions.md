@@ -1,0 +1,12 @@
+- 2026-04-01: Use a spec-first workflow for ResumeTailor before any Django implementation.
+- 2026-04-01: User confirmed V1 editable input is PDF only, despite higher preservation risk than the earlier DOCX-first recommendation.
+- 2026-04-01: Recommend Django monolith with PostgreSQL, Celery, and Redis for the initial architecture.
+- 2026-04-01: Default model access path is an application-managed GitHub Models API key with a top-5 model selector for tailoring.
+- 2026-04-01: V1 exposes two GitHub Models credential modes only: application-managed key and user-supplied GitHub Models key for the active request.
+- 2026-04-01: Azure is the deployment target, with Bicep for IaC and GitHub Actions for CI/CD.
+- 2026-04-01: Runtime mode is single-user local-first in V1, with multi-user support deferred to a later phase.
+- 2026-04-01: Hosted deployment is QA only in V1, limited to eastus.
+- 2026-04-01: Resume-only export produces `tailored-resume.pdf`; resume-and-cover-letter mode provides separate downloads for `tailored-resume.pdf` and `cover-letter.pdf` (no ZIP package).
+- 2026-04-01: CEO directive - complete planning/spec perfection first; do not begin implementation until explicit authorization is provided.
+- 2026-04-01: Formal binary gate review GO-NO-GO-0001 decision is NO-GO until all Critical artifact-existence checks pass and CEO explicitly lifts implementation block.
+- 2026-04-01: Recheck GO-NO-GO-0002: all Critical artifact-existence checks pass; status is ready for CEO authorization while implementation remains blocked.

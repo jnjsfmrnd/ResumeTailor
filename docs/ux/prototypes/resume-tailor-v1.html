@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ResumeTailor V1 Prototype</title>
+  <style>
+    :root {
+      --color-primary: #6a5acd;
+      --color-primary-dark: #4b0082;
+      --color-accent: #ff8c00;
+      --color-surface: #e5e4e2;
+      --color-surface-alt: #d3d3d3;
+      --color-text: #1a1a1a;
+      --color-error: #ff0000;
+      --panel: #f7f6f4;
+      --muted: #4f4b57;
+      --border: #b9b5c3;
+      --shadow: 0 16px 40px rgba(26, 26, 26, 0.12);
+      --shadow-inset: inset 0 1px 2px rgba(255, 255, 255, 0.6);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", "Open Sans", sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(255, 140, 0, 0.1), transparent 28%),
+        radial-gradient(circle at left center, rgba(106, 90, 205, 0.16), transparent 30%),
+        linear-gradient(180deg, #f1f0ee 0%, var(--color-surface) 100%);
+      color: var(--color-text);
+    }
+    .shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+    .hero {
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-family: "Orbitron", "Michroma", monospace;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      letter-spacing: 0.04em;
+    }
+    .hero p { margin: 0; color: var(--muted); max-width: 720px; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 20px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, rgba(75, 0, 130, 0.08) 0, rgba(75, 0, 130, 0.08) 1px, transparent 1px);
+      background-size: 18px 18px;
+      opacity: 0.25;
+      pointer-events: none;
+    }
+    .dropzone {
+      border: 2px dashed var(--color-primary);
+      background: linear-gradient(135deg, rgba(106, 90, 205, 0.12), rgba(255, 140, 0, 0.08));
+      border-radius: 16px;
+      padding: 28px;
+      text-align: center;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-inset);
+    }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-weight: 700; margin-bottom: 6px; }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font: inherit;
+      box-shadow: var(--shadow-inset);
+    }
+    .field textarea { min-height: 140px; resize: vertical; }
+    .hidden { display: none; }
+    .credential-row,
+    .mode-row {
+      display: grid;
+      gap: 8px;
+    }
+    .choice-option {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+      position: relative;
+      z-index: 1;
+    }
+    .security-note {
+      color: var(--color-accent);
+      font-size: 0.95rem;
+    }
+    .mode-hint {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-top: 6px;
+    }
+    .button-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font: inherit;
+      cursor: pointer;
+      transition: transform 80ms ease, box-shadow 80ms ease;
+    }
+    button:active {
+      transform: translateY(2px) scale(0.98);
+      box-shadow: 0 1px 4px rgba(26, 26, 26, 0.2);
+    }
+    .primary {
+      background: linear-gradient(135deg, #7b6fd8 0%, #6a5acd 45%, #5849b8 100%);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(106, 90, 205, 0.4);
+    }
+    .secondary {
+      background: #ece7f7;
+      color: var(--color-text);
+      border: 1px solid rgba(106, 90, 205, 0.24);
+    }
+    .review-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .section-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      background: #fff;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-inset);
+    }
+    .warning {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #fff1de;
+      color: #9c5a12;
+      margin-top: 12px;
+    }
+    .status-chip {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 140, 0, 0.14);
+      color: var(--color-primary-dark);
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .download-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 900px) {
+      .grid, .review-columns { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <h1>ResumeTailor</h1>
+      <p>Single-user local-first workflow for tailoring a PDF resume with GitHub Models, reviewing every change, and downloading approved PDF files safely.</p>
+    </section>
+    <section class="grid">
+      <section class="panel" aria-labelledby="upload-title">
+        <h2 id="upload-title">Upload and settings</h2>
+        <div class="status-chip">QA scope only - eastus</div>
+        <div class="dropzone" tabindex="0" aria-label="Drop PDF here or click to upload">
+          <strong>Drop PDF here</strong>
+          <div>or click to choose a file</div>
+        </div>
+        <div class="field">
+          <label for="job-desc">Job description</label>
+          <textarea id="job-desc"></textarea>
+        </div>
+        <div class="field">
+          <label>Credential mode</label>
+          <div class="credential-row">
+            <label class="choice-option"><input id="cred-app" type="radio" name="credential-mode" checked /> Use app GitHub Models key</label>
+            <label class="choice-option"><input id="cred-user" type="radio" name="credential-mode" /> Use my GitHub Models key</label>
+          </div>
+          <div class="mode-hint">Your own key is used only for the active request and is never saved.</div>
+        </div>
+        <div class="field">
+          <label for="model">Model</label>
+          <select id="model">
+            <option>GPT-5.1</option>
+            <option>Claude Sonnet 4</option>
+            <option>o3</option>
+            <option>GPT-4.1</option>
+            <option>Llama 4 Maverick</option>
+          </select>
+        </div>
+        <div id="byo-key-group" class="field hidden">
+          <label for="byo-key">GitHub Models API key</label>
+          <input id="byo-key" type="password" value="********************" />
+          <div class="security-note">Your key is used only for the current request and is not saved.</div>
+        </div>
+        <div class="field">
+          <label>Generate</label>
+          <div class="mode-row">
+            <label class="choice-option"><input id="mode-resume-only" type="radio" name="generation-mode" checked /> Resume only</label>
+            <label class="choice-option"><input id="mode-resume-cover" type="radio" name="generation-mode" /> Resume and cover letter</label>
+          </div>
+        </div>
+        <div class="button-row">
+          <button class="primary">Start tailoring</button>
+          <button class="secondary">Review supported PDF</button>
+        </div>
+      </section>
+      <section class="panel" aria-labelledby="review-title">
+        <h2 id="review-title">Review and edit</h2>
+        <div class="review-columns">
+          <div>
+            <div class="section-card"><strong>Original summary</strong><p>Product manager with experience leading cross-functional delivery and platform operations.</p></div>
+            <div class="section-card"><strong>Original experience</strong><p>Led roadmap planning, stakeholder alignment, and release coordination across teams.</p></div>
+          </div>
+          <div>
+            <div class="section-card"><strong>Tailored summary</strong><textarea style="min-height: 120px; width: 100%; border: 0; resize: vertical;">Product manager focused on AI-assisted workflow delivery, release execution, and cross-functional planning for platform products.</textarea></div>
+            <div class="section-card"><strong>Tailored experience</strong><textarea style="min-height: 120px; width: 100%; border: 0; resize: vertical;">Led roadmap planning and release coordination for platform initiatives, improving execution clarity and stakeholder alignment.</textarea></div>
+            <div id="cover-letter-card" class="section-card hidden"><strong>Cover letter draft</strong><textarea style="min-height: 140px; width: 100%; border: 0; resize: vertical;">I am applying for this role because it aligns with my experience shaping product delivery, coordinating releases, and translating hiring priorities into execution plans.</textarea></div>
+          </div>
+        </div>
+        <div class="warning">Warning: 1 section may exceed its PDF text region. Review before export.</div>
+        <div class="button-row">
+          <button class="secondary">Re-run section</button>
+          <div class="download-row">
+            <button class="primary">Download resume PDF</button>
+            <button id="download-cover-letter" class="secondary hidden">Download cover letter PDF</button>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script>
+    (function () {
+      var credApp = document.getElementById("cred-app");
+      var credUser = document.getElementById("cred-user");
+      var byoKeyGroup = document.getElementById("byo-key-group");
+      var modeResumeOnly = document.getElementById("mode-resume-only");
+      var modeResumeCover = document.getElementById("mode-resume-cover");
+      var coverLetterCard = document.getElementById("cover-letter-card");
+      var downloadCoverLetter = document.getElementById("download-cover-letter");
+
+      function syncCredentialMode() {
+        var useUserKey = credUser.checked;
+        byoKeyGroup.classList.toggle("hidden", !useUserKey);
+      }
+
+      function syncGenerationMode() {
+        var includeCoverLetter = modeResumeCover.checked;
+        coverLetterCard.classList.toggle("hidden", !includeCoverLetter);
+        downloadCoverLetter.classList.toggle("hidden", !includeCoverLetter);
+      }
+
+      credApp.addEventListener("change", syncCredentialMode);
+      credUser.addEventListener("change", syncCredentialMode);
+      modeResumeOnly.addEventListener("change", syncGenerationMode);
+      modeResumeCover.addEventListener("change", syncGenerationMode);
+
+      syncCredentialMode();
+      syncGenerationMode();
+    }());
+  </script>
+</body>
+</html>

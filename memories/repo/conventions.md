@@ -1,0 +1,9 @@
+- 2026-04-01: Store planning artifacts under docs/artifacts/prd, docs/artifacts/adr, and docs/artifacts/specs.
+- 2026-04-01: Keep AI prompts external to code files when implementation starts.
+- 2026-04-01: Current approved V1 workflow is PDF-only input with mandatory review and user edits before export.
+- 2026-04-01: Current approved V1 UX includes drag-and-drop PDF upload, model selection, and masked BYO API key fields.
+- 2026-04-01: BYO API keys must never be saved; use them only in-memory for the active request and never include them in logs, traces, sessions, or database records.
+- 2026-04-01: Keep phase artifacts present before implementation: docs/ux, docs/data-science, docs/deployment, and story decomposition docs must exist for this project shape.
+- 2026-04-01: When scope changes, update prototype, repo memory, and council review artifacts in the same pass to avoid stale retrieval-led guidance.
+- 2026-04-01: Artifact-sync is counted complete only when referenced files physically exist in the repository.
+- 2026-04-01: Planning-only mode is enforced until CEO gives explicit implementation authorization.

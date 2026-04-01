@@ -1,0 +1,2 @@
+# Planning-only scaffold.
+# Keep this file empty until implementation is explicitly authorized.

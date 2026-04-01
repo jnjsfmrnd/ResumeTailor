@@ -1,0 +1,10 @@
+[project]
+name = "resumetailor"
+version = "0.0.0-planning"
+description = "Planning-only scaffold for ResumeTailor V1"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.resumetailor]
+mode = "planning-only"
+implementation_block = true

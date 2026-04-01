@@ -1,0 +1,9 @@
+{
+  "manifestVersion": "1.0.0",
+  "datasetId": "resume-tailor-v1-baseline",
+  "createdDate": "2026-04-01",
+  "status": "planning-scaffold",
+  "description": "Planning-only baseline manifest scaffold. Replace with curated records before implementation or QA execution.",
+  "recordCount": 0,
+  "records": []
+}
