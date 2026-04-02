@@ -11,11 +11,13 @@ Implement credential mode handling, model shortlist policy, and timeout behavior
 
 Role metadata: lane C, managed by platform-lead.
 
-## Top 3 Skills
+## Top 5 Skills
 
 1. ai-systems/prompt-engineering
 2. architecture/security
 3. development/error-handling
+4. development/configuration
+5. development/logging-monitoring
 
 ## Primary Stories
 

@@ -11,11 +11,13 @@ Own QA infra definitions, CI planning gates, and readiness validation workflow.
 
 Role metadata: lane E, managed by platform-lead.
 
-## Top 3 Skills
+## Top 5 Skills
 
 1. infrastructure/bicep
 2. operations/github-actions-workflows
 3. testing/production-readiness
+4. testing/test-automation
+5. testing/security-testing
 
 ## Primary Stories
 

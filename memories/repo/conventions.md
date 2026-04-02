@@ -9,3 +9,5 @@
 - 2026-04-01: Planning-only mode is enforced until CEO gives explicit implementation authorization.
 - 2026-04-01: Interview-prep assets live under docs/coaching and must stay grounded in actual repo artifacts, explicitly separating planning decisions from implemented behavior.
 - 2026-04-01: Approval artifacts must verify semantic consistency, not only file existence, before using CEO-ready language.
+- 2026-04-02: Frontend planning deliverables should be split into one implementation-facing spec artifact and one reviewer decision artifact to keep execution and approval concerns separate.
+- 2026-04-02: For UX planning changes, include a state table with trigger, behavior, and recovery columns so tester coverage can be mapped without ambiguity.

@@ -11,11 +11,13 @@ Implement PDF parsing, section mapping, and supported-PDF gating.
 
 Role metadata: lane B, managed by platform-lead.
 
-## Top 3 Skills
+## Top 5 Skills
 
 1. languages/python
 2. development/error-handling
 3. testing/integration-testing
+4. architecture/performance
+5. development/type-safety
 
 ## Primary Stories
 

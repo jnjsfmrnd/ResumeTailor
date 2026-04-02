@@ -15,3 +15,12 @@
 - 2026-04-01: Added a dedicated interview-prep-tutor agent and a master interview prep document so project artifacts can be rehearsed as defensible senior-engineer interview answers.
 - 2026-04-01: Final approval-hardening pass removed ambiguous `local-first` wording from planning artifacts; use single-user plus QA-first hosted posture instead.
 - 2026-04-01: Replaced PostgreSQL with SQLite as the planned database for local development, CI, and QA to remove the managed database cost blocker; production database selection remains out of scope.
+- 2026-04-02: Frontend UX implementation planning is now formalized in SPEC-0002 with a two-surface Django full-stack scope: setup workspace plus review workspace.
+- 2026-04-02: Council frontend review decision is APPROVED for implementation planning; no High-severity planning gaps remain.
+- 2026-04-02: AgentX council re-review approved the fixed frontend packet after route naming, coordinated asset migration, and ownership gaps were resolved.
+- 2026-04-02: Platform lead and engineers A-F now use top-5 skill stacks tuned for Django full-stack delivery, frontend UX quality, and QA-safe rollout.
+- 2026-04-02: Frontend execution scheduling is now documented per agent in SPEC-0003 with ownership, dependencies, deliverables, and done gates.
+- 2026-04-02: AgentX council confidence ratings are documented in REVIEW-0006; the approved scheduling model is task-pull execution where agents take the next unblocked task immediately.
+- 2026-04-02: Frontend merge sequencing is now fixed in SPEC-0004 and Platform Lead is responsible for enforcing it when implementation begins.
+- 2026-04-02: Final AgentX audit found no remaining planning blockers; the last day-based wording was removed so the packet now consistently uses task-pull scheduling.
+- 2026-04-02: Orchestration ownership is formally documented in REVIEW-0008: Platform Lead holds final authority over merge sequencing and integration gates; AgentX Auto drives task-pull routing between agents.
