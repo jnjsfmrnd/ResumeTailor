@@ -70,7 +70,8 @@ def ingest_resume_task(self, session_id: str) -> None:
             tmp_fd, tmp_path = tempfile.mkstemp(suffix=".pdf")
             try:
                 with os.fdopen(tmp_fd, "wb") as f:
-                    f.write(default_storage.open(session.source_pdf_path).read())
+                    with default_storage.open(session.source_pdf_path, "rb") as src:
+                        f.write(src.read())
                 sections = ingest_resume(session, tmp_path)
             finally:
                 os.unlink(tmp_path)

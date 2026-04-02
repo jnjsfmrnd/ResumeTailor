@@ -315,6 +315,10 @@ class GenerationService:
                 raise _StructuredOutputError(
                     f"Section '{key}' is missing non-empty 'tailored_content'."
                 )
+            if key in output_by_key:
+                raise _StructuredOutputError(
+                    f"Duplicate 'section_key' '{key}' in model response."
+                )
             output_by_key[key] = content
 
         # Ensure all input section_keys are represented in the output
@@ -364,10 +368,10 @@ class GenerationService:
         """Write tailored content back to DB after successful generation."""
         output_map = {s.section_key: s.tailored_content for s in tailored_sections}
 
-        sections_to_update = ResumeSection.objects.filter(
+        sections_to_update = list(ResumeSection.objects.filter(
             session_id=request.session_id,
             section_key__in=list(output_map.keys()),
-        )
+        ))
         for section in sections_to_update:
             section.tailored_content = output_map[section.section_key]
 
