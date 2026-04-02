@@ -3,9 +3,6 @@
    Imports design-tokens.css values via custom properties.
    ============================================================ */
 
-/* ── Google Fonts ─────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;600;700&display=swap');
-
 /* ── Global reset ─────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -367,7 +364,49 @@ a.btn:active {
   border-color: var(--color-primary);
 }
 
-/* ── Credential & mode rows ───────────────────────────────── */
+/* ── Dropzone hint text ───────────────────────────────────── */
+.dropzone-hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.dropzone-hint-action {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.dropzone-filename {
+  margin: 6px 0 0;
+  font-size: 0.88rem;
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+/* ── Fieldset reset ───────────────────────────────────────── */
+.fieldset-reset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.fieldset-legend {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* ── Choice-option hint text ──────────────────────────────── */
+.choice-option-hint {
+  display: block;
+  color: var(--muted);
+}
+
+/* ── Submit field / full-width button ─────────────────────── */
+.field--submit {
+  margin-top: 8px;
+}
+.btn-block {
+  width: 100%;
+  justify-content: center;
+}
+
 .credential-row,
 .mode-row {
   display: flex;

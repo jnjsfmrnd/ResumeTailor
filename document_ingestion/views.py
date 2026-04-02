@@ -26,7 +26,7 @@ from django.core.files.storage import default_storage
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 
 from resume_sessions.models import ResumeSession
@@ -42,7 +42,7 @@ _UNSUPPORTED_PDF_MESSAGE = (
 )
 
 
-@method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(ensure_csrf_cookie, name="get")
 class UploadView(View):
     """Accept a PDF upload and create a ResumeSession.
 

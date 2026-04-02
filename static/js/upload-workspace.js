@@ -181,29 +181,44 @@
       body: fd,
     })
       .then(function (res) {
-        return res.json().then(function (data) {
-          return { ok: res.ok, status: res.status, data: data };
+        var contentType = res.headers && res.headers.get && res.headers.get('content-type');
+        contentType = contentType || '';
+        if (contentType.indexOf('application/json') === 0) {
+          return res.json().then(function (data) {
+            return { ok: res.ok, status: res.status, data: data, isJson: true };
+          });
+        }
+        return res.text().then(function () {
+          return { ok: res.ok, status: res.status, data: null, isJson: false };
         });
       })
       .then(function (result) {
         setLoading(false);
         if (!result.ok) {
-          var errors = result.data.errors || {};
-          if (errors.pdf_file)        showFieldError(pdfError, errors.pdf_file);
-          if (errors.job_description) showFieldError(jdError, errors.job_description);
-          if (errors.user_key)        showFieldError(userKeyError, errors.user_key);
-          if (errors.selected_model)  showFieldError(modelError, errors.selected_model);
-          if (!errors.pdf_file && !errors.job_description && !errors.user_key && !errors.selected_model) {
-            var credModeNow = document.querySelector('input[name="credential_mode"]:checked').value;
-            var timeoutMsg = credModeNow === 'user_key'
-              ? 'Request timed out. Check your API key and retry.'
-              : 'Request timed out. Retry the request.';
-            showBanner(errors.general || timeoutMsg, true);
+          if (result.isJson && result.data && result.data.errors) {
+            var errors = result.data.errors || {};
+            if (errors.pdf_file)        showFieldError(pdfError, errors.pdf_file);
+            if (errors.job_description) showFieldError(jdError, errors.job_description);
+            if (errors.user_key)        showFieldError(userKeyError, errors.user_key);
+            if (errors.selected_model)  showFieldError(modelError, errors.selected_model);
+            if (!errors.pdf_file && !errors.job_description && !errors.user_key && !errors.selected_model) {
+              var credModeNow = document.querySelector('input[name="credential_mode"]:checked').value;
+              var timeoutMsg = credModeNow === 'user_key'
+                ? 'Request timed out. Check your API key and retry.'
+                : 'Request timed out. Retry the request.';
+              showBanner(errors.general || timeoutMsg, true);
+            }
+          } else {
+            showBanner('An unexpected server error occurred. Please try again later.', true);
           }
           return;
         }
         // Success: redirect to review workspace
-        var sessionId = result.data.session_id;
+        var sessionId = result.data && result.data.session_id;
+        if (!sessionId) {
+          showBanner('An unexpected server error occurred. Please try again later.', true);
+          return;
+        }
         window.location.href = '/sessions/' + sessionId + '/review/';
       })
       .catch(function () {
