@@ -1,0 +1,454 @@
+/* ============================================================
+   ResumeTailor — Shared Component Styles (app.css)
+   Imports design-tokens.css values via custom properties.
+   ============================================================ */
+
+/* ── Google Fonts ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;600;700&display=swap');
+
+/* ── Global reset ─────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background:
+    radial-gradient(circle at top right,  rgba(255, 140, 0, 0.10), transparent 28%),
+    radial-gradient(circle at left center, rgba(106, 90, 205, 0.16), transparent 30%),
+    linear-gradient(180deg, #f1f0ee 0%, var(--color-surface) 100%);
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+/* ── Shell container ──────────────────────────────────────── */
+.shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.header h1 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  letter-spacing: 0.04em;
+  color: var(--color-primary-dark);
+}
+.header .back-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+.header .back-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Status chip ──────────────────────────────────────────── */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 140, 0, 0.14);
+  color: var(--color-primary-dark);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 20px;
+}
+
+/* ── Overflow warning ─────────────────────────────────────── */
+.overflow-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: #fff1de;
+  color: #9c5a12;
+  border: 1px solid rgba(255, 140, 0, 0.35);
+  margin-bottom: 20px;
+  font-size: 0.93rem;
+}
+.overflow-warning svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── Review panel ─────────────────────────────────────────── */
+.review-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.review-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle,
+    rgba(75, 0, 130, 0.08) 0,
+    rgba(75, 0, 130, 0.08) 1px,
+    transparent 1px
+  );
+  background-size: 18px 18px;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+/* ── Column headers ───────────────────────────────────────── */
+.columns-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+.columns-header h3 {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+/* ── Review columns ───────────────────────────────────────── */
+.review-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── Section card ─────────────────────────────────────────── */
+.section-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  background: #fff;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-inset);
+  position: relative;
+}
+.section-card.overflow-risk {
+  border-color: rgba(255, 140, 0, 0.6);
+  background: #fffbf2;
+}
+.overflow-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* ── Card label & original text ───────────────────────────── */
+.card-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.original-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Edit textarea ────────────────────────────────────────── */
+.edit-area {
+  width: 100%;
+  min-height: 120px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  resize: vertical;
+  box-shadow: var(--shadow-inset);
+  transition: border-color 120ms ease;
+}
+.edit-area:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* ── Save indicator ───────────────────────────────────────── */
+.save-indicator {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 4px;
+  min-height: 1.2em;
+  transition: color 200ms ease;
+}
+.save-indicator.saved  { color: #2a7a2a; }
+.save-indicator.saving { color: var(--color-accent); }
+.save-indicator.error  { color: var(--color-error); }
+
+/* ── Cover letter section ─────────────────────────────────── */
+.cover-letter-row {
+  margin-top: 6px;
+}
+.cover-letter-row .section-card {
+  margin-bottom: 0;
+}
+
+/* ── Action bar ───────────────────────────────────────────── */
+.action-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+button,
+a.btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font: inherit;
+  font-size: 0.94rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+button:active,
+a.btn:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 1px 4px rgba(26, 26, 26, 0.2);
+}
+.btn-primary {
+  background: linear-gradient(135deg, #7b6fd8 0%, #6a5acd 45%, #5849b8 100%);
+  color: #fff;
+  box-shadow: var(--shadow-button);
+}
+.btn-secondary {
+  background: #ece7f7;
+  color: var(--color-text);
+  border: 1px solid rgba(106, 90, 205, 0.24);
+}
+
+/* ── Screen-reader only utility ───────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Responsive — single-column review layout ─────────────── */
+@media (max-width: 900px) {
+  .columns-header,
+  .review-columns {
+    grid-template-columns: 1fr;
+  }
+  .columns-header h3:first-child {
+    display: none;
+  }
+}
+
+/* ============================================================
+   Upload workspace styles
+   ============================================================ */
+
+.upload-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.upload-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 28px 32px;
+}
+
+/* ── Dropzone ─────────────────────────────────────────────── */
+.dropzone {
+  border: 2px dashed var(--color-primary);
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    135deg,
+    rgba(106, 90, 205, 0.12),
+    rgba(255, 140, 0, 0.08)
+  );
+  padding: 36px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-style 120ms ease,
+    background 120ms ease;
+}
+.dropzone.drag-active {
+  border-style: solid;
+  background: linear-gradient(
+    135deg,
+    rgba(106, 90, 205, 0.20),
+    rgba(255, 140, 0, 0.14)
+  );
+}
+
+/* ── Form fields ──────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.field label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.field input,
+.field textarea,
+.field select {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.93rem;
+  color: var(--color-text);
+  box-shadow: var(--shadow-inset);
+  transition: border-color 120ms ease;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* ── Credential & mode rows ───────────────────────────────── */
+.credential-row,
+.mode-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+/* ── Choice options (radio-button-style cards) ────────────── */
+.choice-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.93rem;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.choice-option:has(input:checked) {
+  border-color: var(--color-primary);
+  background: rgba(106, 90, 205, 0.07);
+}
+
+/* ── User API-key field (hidden until "own key" is selected) ─ */
+.user-key-field {
+  display: none;
+}
+.user-key-field.visible {
+  display: flex;
+}
+
+/* ── Security notice ──────────────────────────────────────── */
+.security-notice {
+  font-size: 0.82rem;
+  color: var(--muted);
+  padding: 8px 12px;
+  border-left: 3px solid var(--color-primary);
+  background: rgba(106, 90, 205, 0.06);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-top: 8px;
+}
+
+/* ── Inline error message ─────────────────────────────────── */
+.error-message {
+  font-size: 0.85rem;
+  color: var(--color-error);
+  margin-top: 4px;
+}
+
+/* ── Spinning disc loader ─────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(106, 90, 205, 0.25);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  vertical-align: middle;
+}
+
+/* ── Status banner ────────────────────────────────────────── */
+.status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.93rem;
+  margin-bottom: 20px;
+}
+.status-banner--error {
+  background: #fff0f0;
+  color: #c0392b;
+  border: 1px solid rgba(255, 0, 0, 0.25);
+}
+.status-banner--info {
+  background: rgba(106, 90, 205, 0.08);
+  color: var(--color-primary-dark);
+  border: 1px solid rgba(106, 90, 205, 0.22);
+}
