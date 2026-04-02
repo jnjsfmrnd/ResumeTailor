@@ -1,3 +1,4 @@
+---
 name: engineer-f
 description: SQLite migration, runtime-contract freeze, and cross-surface implementation lane owner.
 ---
