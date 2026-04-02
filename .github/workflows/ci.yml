@@ -48,8 +48,6 @@ jobs:
 
       - name: Django system check
         run: python manage.py check
-        env:
-          DJANGO_SETTINGS_MODULE: resumetailor.settings.base
 
       - name: Run pytest
         run: python -m pytest --tb=short -q
