@@ -1,6 +1,6 @@
-"""Test settings — uses SQLite so tests run without PostgreSQL."""
+"""Test settings — uses SQLite in-memory to avoid PostgreSQL dependency in CI."""
 
-from resumetailor.settings.base import *  # noqa: F401, F403
+from .base import *  # noqa: F401, F403
 
 DATABASES = {
     "default": {

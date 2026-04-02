@@ -400,3 +400,36 @@ def _flush_section(
             "original_content": original_content,
         }
     )
+
+
+# ---------------------------------------------------------------------------
+# Compatibility helper used by the upload view (Engineer A)
+# ---------------------------------------------------------------------------
+
+
+def is_pdf_text_extractable(file_bytes: bytes) -> bool:
+    """Return True if the PDF bytes contain at least one page with extractable text.
+
+    Used by the upload view as a fast pre-flight check before the session is
+    created.  Delegates to the same fitz logic as check_pdf_supported but
+    accepts raw bytes rather than a file path so the view can call it without
+    first persisting the upload.
+
+    Args:
+        file_bytes: Raw bytes of the uploaded PDF file.
+
+    Returns:
+        True  — at least one page has selectable text.
+        False — file is unreadable, not a valid PDF, encrypted, or image-only.
+    """
+    try:
+        with fitz.open(stream=file_bytes, filetype="pdf") as doc:
+            if doc.is_encrypted:
+                return False
+            for page in doc:
+                if page.get_text().strip():
+                    return True
+    except Exception:
+        return False
+    return False
+
