@@ -328,6 +328,10 @@ a.btn:active {
     rgba(255, 140, 0, 0.14)
   );
 }
+.dropzone.ready {
+  border-style: solid;
+  border-color: var(--color-primary-dark);
+}
 
 /* ── Form fields ──────────────────────────────────────────── */
 .field {
@@ -375,8 +379,8 @@ a.btn:active {
 
 /* ── Choice options (radio-button-style cards) ────────────── */
 /* Note: :has() is a progressive enhancement — supported in all modern
-   browsers (Chrome 105+, Firefox 121+, Safari 15.4+, released 2022-23).
-   Older browsers will simply not highlight the selected option visually. */
+   browsers. Older browsers will simply not highlight the selected option
+   visually. */
 .choice-option {
   display: flex;
   align-items: center;
