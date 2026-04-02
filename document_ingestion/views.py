@@ -8,9 +8,16 @@ Contracts:
 Owns: form submission, PDF validation, storage wiring, session creation,
 and the status transition pending → ingesting.
 
-Engineer B picks the session up from `ingesting` status to parse sections.
+Dispatch strategy:
+  - app_key: dispatches ``ingest_resume_task`` async; Celery then chains to
+    ``run_generation``. Returns 201 immediately.
+  - user_key: runs ingestion + generation synchronously in-request.
+    The raw user_key must never be written to persistent storage or the
+    Celery broker (Redis), so the async chain cannot be used.
 """
 
+import os
+import tempfile
 import uuid
 
 from django.conf import settings
@@ -23,7 +30,7 @@ from django.utils.decorators import method_decorator
 
 from resume_sessions.models import ResumeSession
 
-from .services import is_pdf_text_extractable
+from .services import ingest_resume, is_pdf_text_extractable
 
 # 20 MB upload limit.
 _MAX_PDF_BYTES = 20 * 1024 * 1024
@@ -79,6 +86,7 @@ class UploadView(View):
             "generation_mode",
             ResumeSession.GenerationMode.RESUME_ONLY,
         ).strip()
+        user_key = request.POST.get("user_key", "").strip()
 
         # ── field validation ────────────────────────────────────────────────
         if not pdf_file:
@@ -100,6 +108,8 @@ class UploadView(View):
             errors["credential_mode"] = (
                 "credential_mode must be 'app_key' or 'user_key'."
             )
+        elif credential_mode == ResumeSession.CredentialMode.USER_KEY and not user_key:
+            errors["user_key"] = "user_key is required when credential_mode is 'user_key'."
 
         curated_models = getattr(settings, "RESUME_TAILOR_CURATED_MODELS", [])
         if selected_model not in curated_models:
@@ -154,9 +164,69 @@ class UploadView(View):
             default_storage.delete(saved_path)
             raise
 
-        # ── hand off to ingestion lane (Engineer B) ───────────────────────────
-        session.status = ResumeSession.Status.INGESTING
-        session.save(update_fields=["status", "updated_at"])
+        # ── dispatch to ingestion + generation lanes ──────────────────────
+        if credential_mode == ResumeSession.CredentialMode.APP_KEY:
+            # Async path: ingest task → generation task (Celery chain).
+            from .tasks import ingest_resume_task
+
+            session.status = ResumeSession.Status.INGESTING
+            session.save(update_fields=["status", "updated_at"])
+            ingest_resume_task.delay(str(session.id))
+        else:
+            # Synchronous path for user_key: the raw key must never touch
+            # persistent storage or the Celery broker, so the full pipeline
+            # runs in-request.
+            from .exceptions import UnsupportedPDFError
+            from generation.service import (
+                GenerationRequest,
+                GenerationService,
+                SectionInput,
+            )
+
+            session.status = ResumeSession.Status.INGESTING
+            session.save(update_fields=["status", "updated_at"])
+
+            try:
+                # Write pdf_bytes to a temp file because ingest_resume
+                # expects a filesystem path; the stored path is relative to
+                # MEDIA_ROOT and may not be resolvable from the process CWD.
+                tmp_fd, tmp_path = tempfile.mkstemp(suffix=".pdf")
+                try:
+                    with os.fdopen(tmp_fd, "wb") as f:
+                        f.write(pdf_bytes)
+                    sections = ingest_resume(session, tmp_path)
+                finally:
+                    os.unlink(tmp_path)
+            except UnsupportedPDFError:
+                session.status = ResumeSession.Status.FAILED
+                session.save(update_fields=["status", "updated_at"])
+                return JsonResponse(
+                    {"errors": {"pdf_file": _UNSUPPORTED_PDF_MESSAGE}},
+                    status=422,
+                )
+
+            session.status = ResumeSession.Status.GENERATING
+            session.save(update_fields=["status", "updated_at"])
+
+            gen_request = GenerationRequest(
+                session_id=str(session.id),
+                credential_mode=credential_mode,
+                model_name=selected_model,
+                sections=[
+                    SectionInput(
+                        section_key=s.section_key,
+                        order_index=s.order_index,
+                        original_content=s.original_content,
+                    )
+                    for s in sections
+                ],
+                job_description=job_description,
+                generation_mode=generation_mode,
+                user_key=user_key,
+            )
+            # user_key lives only in gen_request (in memory) and is
+            # discarded after GenerationService.run() returns.
+            GenerationService().run(gen_request)
 
         return JsonResponse(
             {

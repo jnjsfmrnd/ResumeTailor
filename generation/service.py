@@ -162,7 +162,9 @@ class GenerationService:
                 api_key=api_key,
                 timeout=float(timeout),
             )
-            # Clear the local reference; the key is now only inside the client object.
+            # Remove the local reference so it does not remain accessible in
+            # this stack frame. The key is still held by the client object, but
+            # this prevents accidental use or logging of the local variable.
             api_key = None
 
             response = client.chat.completions.create(
