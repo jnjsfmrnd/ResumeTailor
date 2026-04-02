@@ -22,3 +22,6 @@ PASSWORD_HASHERS = [
 # Disable Celery task execution in tests
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+
+# Use local file storage for tests
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
