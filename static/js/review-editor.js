@@ -131,10 +131,19 @@
     }, DEBOUNCE_MS);
   }
 
-  /* Attach debounced input listeners to all edit areas on load. */
-  document.addEventListener('DOMContentLoaded', function () {
+  /* Attach debounced input listeners to all edit areas.
+   * Guard against the case where DOMContentLoaded already fired (e.g. the
+   * script is loaded dynamically or document.readyState is already
+   * 'interactive' / 'complete'). */
+  function attachListeners() {
     document.querySelectorAll('.edit-area').forEach(function (el) {
       el.addEventListener('input', onInput);
     });
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachListeners);
+  } else {
+    attachListeners();
+  }
 }());
