@@ -80,13 +80,26 @@ def _post_upload(client, pdf_bytes: bytes, filename: str = "resume.pdf", **field
 
 
 @override_settings(
-    MEDIA_ROOT=tempfile.mkdtemp(),
     RESUME_TAILOR_CURATED_MODELS=_CURATED_MODELS,
     RESUME_TAILOR_DEFAULT_MODEL="gpt-5.1",
 )
 class UploadViewTests(TestCase):
     """Tests for POST /upload/ (Story A1 + A2)."""
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        # Use a TemporaryDirectory for MEDIA_ROOT so it is cleaned up after tests.
+        cls._temp_media_dir = tempfile.TemporaryDirectory()
+        cls._media_override = override_settings(MEDIA_ROOT=cls._temp_media_dir.name)
+        cls._media_override.enable()
+
+    @classmethod
+    def tearDownClass(cls):
+        # Disable MEDIA_ROOT override and clean up the temporary directory.
+        cls._media_override.disable()
+        cls._temp_media_dir.cleanup()
+        super().tearDownClass()
     # ── A1: happy-path upload ─────────────────────────────────────────────────
 
     def test_valid_pdf_returns_201_with_session(self):
