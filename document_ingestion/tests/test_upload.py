@@ -20,6 +20,7 @@ Acceptance criteria verified:
 
 import io
 import tempfile
+from unittest.mock import MagicMock, patch
 
 import fitz  # PyMuPDF
 from django.test import TestCase, override_settings
@@ -96,6 +97,24 @@ class UploadViewTests(TestCase):
         cls._temp_media_dir.cleanup()
         super().tearDownClass()
 
+    def setUp(self):
+        # Mock the Celery task dispatch so tests don't need a running Redis broker.
+        ingest_patcher = patch("document_ingestion.tasks.ingest_resume_task.delay")
+        self.mock_ingest_task_delay = ingest_patcher.start()
+        self.addCleanup(ingest_patcher.stop)
+
+        # Mock ingest_resume and GenerationService for the user_key synchronous
+        # path so tests don't require a PDF on disk or a live GitHub Models endpoint.
+        ingest_sync_patcher = patch("document_ingestion.views.ingest_resume")
+        self.mock_ingest_resume = ingest_sync_patcher.start()
+        self.mock_ingest_resume.return_value = []  # no sections
+        self.addCleanup(ingest_sync_patcher.stop)
+
+        gen_service_patcher = patch("generation.service.GenerationService")
+        self.mock_gen_service_cls = gen_service_patcher.start()
+        self.mock_gen_service_cls.return_value.run.return_value = MagicMock()
+        self.addCleanup(gen_service_patcher.stop)
+
     # ── A1: happy-path upload ─────────────────────────────────────────────────
 
     def test_valid_pdf_returns_201_with_session(self):
@@ -131,6 +150,7 @@ class UploadViewTests(TestCase):
             pdf,
             job_description="Design distributed systems.",
             credential_mode="user_key",
+            user_key="ghs_testkey123",
             selected_model="o3",
             generation_mode="resume_and_cover_letter",
         )
@@ -279,3 +299,27 @@ class UploadViewTests(TestCase):
         r1 = _post_upload(self.client, pdf)
         r2 = _post_upload(self.client, pdf)
         self.assertNotEqual(r1.json()["session_id"], r2.json()["session_id"])
+
+    # ── dispatch: ingest task dispatched for app_key ──────────────────────────
+
+    def test_app_key_upload_dispatches_ingest_task(self):
+        """A successful app_key upload dispatches ingest_resume_task."""
+        pdf = _make_text_pdf()
+        resp = _post_upload(self.client, pdf, credential_mode="app_key")
+        self.assertEqual(resp.status_code, 201)
+        session_id = resp.json()["session_id"]
+        self.mock_ingest_task_delay.assert_called_once_with(session_id)
+
+    def test_user_key_upload_does_not_dispatch_ingest_task(self):
+        """A user_key upload runs synchronously and never dispatches the ingest task."""
+        pdf = _make_text_pdf()
+        resp = _post_upload(self.client, pdf, credential_mode="user_key", user_key="ghs_testkey456")
+        self.assertEqual(resp.status_code, 201)
+        self.mock_ingest_task_delay.assert_not_called()
+
+    def test_missing_user_key_for_user_key_mode_returns_400(self):
+        """Submitting credential_mode=user_key without a user_key returns 400."""
+        pdf = _make_text_pdf()
+        resp = _post_upload(self.client, pdf, credential_mode="user_key")
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("user_key", resp.json()["errors"])

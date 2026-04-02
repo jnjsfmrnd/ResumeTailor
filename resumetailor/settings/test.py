@@ -8,3 +8,20 @@ DATABASES = {
         "NAME": ":memory:",
     }
 }
+
+# Skip secure cookie settings in tests
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SECURE_SSL_REDIRECT = False
+
+# Speed up password hashing in tests
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.MD5PasswordHasher",
+]
+
+# Run Celery tasks eagerly in tests (synchronous, no broker needed)
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True
+
+# Use local file storage for tests
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"

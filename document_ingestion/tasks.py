@@ -28,6 +28,12 @@ def ingest_resume_task(self, session_id: str) -> None:
     Duplicate delivery safety: the task acquires a row-level lock and checks
     the current status before proceeding so that a second concurrent delivery
     is a no-op instead of causing uniqueness-constraint violations.
+
+    Handoff to generation lane:
+    - app_key sessions: dispatches ``generation.run_generation`` Celery task.
+    - user_key sessions: generation cannot be run asynchronously (user_key is
+      never persisted). The upload view handles user_key sessions synchronously
+      and does not dispatch this task for them.
     """
     try:
         with transaction.atomic():
@@ -49,7 +55,26 @@ def ingest_resume_task(self, session_id: str) -> None:
         return
 
     try:
-        ingest_resume(session, session.source_pdf_path)
+        from django.core.files.storage import default_storage
+
+        try:
+            pdf_path = default_storage.path(session.source_pdf_path)
+            sections = ingest_resume(session, pdf_path)
+        except NotImplementedError:
+            # Cloud storage backends (e.g. Azure) don't support local path
+            # resolution. Download the file to a temporary location so that
+            # fitz can open it via a real filesystem path.
+            import os
+            import tempfile
+
+            tmp_fd, tmp_path = tempfile.mkstemp(suffix=".pdf")
+            try:
+                with os.fdopen(tmp_fd, "wb") as f:
+                    with default_storage.open(session.source_pdf_path, "rb") as src:
+                        f.write(src.read())
+                sections = ingest_resume(session, tmp_path)
+            finally:
+                os.unlink(tmp_path)
     except UnsupportedPDFError as exc:
         logger.warning(
             "ingest_resume_task: unsupported PDF for session %s: %s",
@@ -74,3 +99,29 @@ def ingest_resume_task(self, session_id: str) -> None:
         "ingest_resume_task: session %s ingested successfully, status → generating",
         session_id,
     )
+
+    # ── dispatch generation (app_key only) ───────────────────────────────
+    # user_key sessions are handled synchronously in the upload view because
+    # the raw key must never be written to the Celery broker (Redis).
+    if session.credential_mode == ResumeSession.CredentialMode.APP_KEY:
+        from generation.tasks import run_generation  # local import avoids circular import
+
+        section_inputs = [
+            {
+                "section_key": s.section_key,
+                "order_index": s.order_index,
+                "original_content": s.original_content,
+            }
+            for s in sections
+        ]
+        run_generation.delay(
+            session_id=str(session.id),
+            model_name=session.selected_model,
+            section_inputs=section_inputs,
+            job_description=session.job_description,
+            generation_mode=session.generation_mode,
+        )
+        logger.info(
+            "ingest_resume_task: dispatched run_generation for session %s",
+            session_id,
+        )
