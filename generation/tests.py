@@ -509,7 +509,7 @@ class TestSuccessfulGeneration(TestCase):
         self.assertIsNotNone(run.duration_ms)
         self.assertEqual(run.model_name, _DEFAULT_MODEL)
         self.assertEqual(run.prompt_version, "1.0.0")
-        self.assertFalse(run.error_code)
+        self.assertEqual(run.error_code, "")  # blank on success, not None
 
     def test_model_connection_failure_yields_model_unavailable(self):
         req = _make_request(self.session)
