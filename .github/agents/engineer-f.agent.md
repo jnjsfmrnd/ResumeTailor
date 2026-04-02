@@ -14,10 +14,10 @@ Role metadata: lane F, managed by platform-lead.
 ## Top 5 Skills
 
 1. languages/python
-2. infrastructure/bicep
-3. operations/github-actions-workflows
-4. development/configuration
-5. infrastructure/containerization
+2. development/configuration
+3. infrastructure/containerization
+4. infrastructure/bicep
+5. operations/github-actions-workflows
 
 ## Primary Stories
 

@@ -11,11 +11,13 @@ Implement upload entry flow and session bootstrap contracts.
 
 Role metadata: lane A, managed by platform-lead.
 
-## Top 3 Skills
+## Top 5 Skills
 
 1. languages/python
-2. architecture/api-design
-3. development/type-safety
+2. design/frontend-ui
+3. design/ux-ui-design
+4. development/type-safety
+5. architecture/api-design
 
 ## Primary Stories
 

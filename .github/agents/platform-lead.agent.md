@@ -11,11 +11,13 @@ Own shared contracts, integration gates, and delivery coordination for Engineer 
 
 Role metadata: reports to CEO, planning-first governance.
 
-## Top 3 Skills
+## Top 5 Skills
 
 1. architecture/core-principles
 2. development/code-review
 3. development/iterative-loop
+4. development/testing
+5. architecture/security
 
 ## Scope
 
@@ -41,3 +43,4 @@ Role metadata: reports to CEO, planning-first governance.
 - Keep planning-first governance active until explicit CEO implementation authorization.
 - Reject lane changes that bypass contract versioning.
 - Enforce no-ZIP export policy in cross-lane reviews.
+- Enforce SPEC-0004 frontend merge sequencing during the implementation pass.

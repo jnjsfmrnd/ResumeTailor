@@ -11,11 +11,13 @@ Implement review workspace behavior and dual PDF download export flow.
 
 Role metadata: lane D, managed by platform-lead.
 
-## Top 3 Skills
+## Top 5 Skills
 
 1. design/frontend-ui
-2. languages/python
-3. development/testing
+2. design/ux-ui-design
+3. design/design-system-reasoning
+4. development/testing
+5. languages/python
 
 ## Primary Stories
 
