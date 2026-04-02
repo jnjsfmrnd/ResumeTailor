@@ -23,3 +23,4 @@
 - 2026-04-02: AgentX council confidence ratings are documented in REVIEW-0006; the approved scheduling model is task-pull execution where agents take the next unblocked task immediately.
 - 2026-04-02: Frontend merge sequencing is now fixed in SPEC-0004 and Platform Lead is responsible for enforcing it when implementation begins.
 - 2026-04-02: Final AgentX audit found no remaining planning blockers; the last day-based wording was removed so the packet now consistently uses task-pull scheduling.
+- 2026-04-02: Orchestration ownership is formally documented in REVIEW-0008: Platform Lead holds final authority over merge sequencing and integration gates; AgentX Auto drives task-pull routing between agents.
