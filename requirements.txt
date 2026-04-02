@@ -1,2 +1,7 @@
-# Planning-only scaffold.
-# Keep this file empty until implementation is explicitly authorized.
+Django==4.2.26
+celery==5.3
+redis==5.0
+psycopg2-binary==2.9
+PyMuPDF==1.24
+openai==1.30
+django-storages[azure]==1.14

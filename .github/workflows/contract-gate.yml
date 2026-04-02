@@ -1,0 +1,70 @@
+name: Contract Gate
+
+on:
+  pull_request:
+    paths:
+      - 'docs/contracts/**'
+      - '.github/workflows/contract-gate.yml'
+  push:
+    branches:
+      - main
+      - 'copilot/**'
+    paths:
+      - 'docs/contracts/**'
+  workflow_dispatch:
+
+jobs:
+  contract-health:
+    name: Verify contract files exist and are versioned
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify all contract files are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Checking contract files..."
+          test -f docs/contracts/CONTRACT-VERSION.md
+          test -f docs/contracts/session-schema.md
+          test -f docs/contracts/section-output-schema.md
+          test -f docs/contracts/cover-letter-draft-schema.md
+          test -f docs/contracts/generation-service-interface.md
+          test -f docs/contracts/export-service-interface.md
+          echo "All 6 contract files present."
+
+      - name: Verify each contract file carries a version header
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in \
+            docs/contracts/session-schema.md \
+            docs/contracts/section-output-schema.md \
+            docs/contracts/cover-letter-draft-schema.md \
+            docs/contracts/generation-service-interface.md \
+            docs/contracts/export-service-interface.md; do
+            if ! grep -q "^\*\*Version\*\*:" "$f"; then
+              echo "ERROR: $f is missing a **Version**: header."
+              exit 1
+            fi
+            echo "$f — version header present."
+          done
+
+      - name: Verify version registry lists all contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          for contract in \
+            session-schema.md \
+            section-output-schema.md \
+            cover-letter-draft-schema.md \
+            generation-service-interface.md \
+            export-service-interface.md; do
+            if ! grep -q "$contract" docs/contracts/CONTRACT-VERSION.md; then
+              echo "ERROR: $contract is not listed in CONTRACT-VERSION.md."
+              exit 1
+            fi
+            echo "$contract — listed in version registry."
+          done
+          echo "Contract gate passed."

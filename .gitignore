@@ -2,3 +2,25 @@
 # AgentX runtime state
 .agentx/
 # --- /AgentX ---
+
+# Python bytecode / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Distribution / build
+*.egg-info/
+dist/
+build/
+
+# Django local settings / secrets
+*.env
+.env
+
+# OS
+.DS_Store
