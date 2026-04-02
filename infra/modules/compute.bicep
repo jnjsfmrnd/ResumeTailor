@@ -24,14 +24,20 @@ param imageTag string = 'latest'
 @description('Minimum replicas for the web app.')
 param webMinReplicas int = 1
 
-@description('Maximum replicas for the web app.')
-param webMaxReplicas int = 3
+// SQLite on a shared Azure File Share does not support concurrent writers.
+// Keep this at 1 for any environment using the SQLite-backed storage.
+@description('Maximum replicas for the web app. Must be 1 when using SQLite storage.')
+@maxValue(1)
+param webMaxReplicas int = 1
 
 @description('Minimum replicas for the worker app.')
 param workerMinReplicas int = 1
 
-@description('Maximum replicas for the worker app.')
-param workerMaxReplicas int = 2
+// SQLite on a shared Azure File Share does not support concurrent writers.
+// Keep this at 1 for any environment using the SQLite-backed storage.
+@description('Maximum replicas for the worker app. Must be 1 when using SQLite storage.')
+@maxValue(1)
+param workerMaxReplicas int = 1
 
 @description('SQLite database file path inside the container.')
 param sqliteDbPath string = '/app/data/resumetailor.sqlite3'

@@ -13,14 +13,14 @@ param imageTag string = 'latest'
 @description('Minimum replicas for the web container app.')
 param webMinReplicas int = 1
 
-@description('Maximum replicas for the web container app.')
-param webMaxReplicas int = 3
+@description('Maximum replicas for the web container app. Must be 1 when using SQLite storage.')
+param webMaxReplicas int = 1
 
 @description('Minimum replicas for the worker container app.')
 param workerMinReplicas int = 1
 
-@description('Maximum replicas for the worker container app.')
-param workerMaxReplicas int = 2
+@description('Maximum replicas for the worker container app. Must be 1 when using SQLite storage.')
+param workerMaxReplicas int = 1
 
 // --- Redis ---
 @description('Redis SKU name.')
