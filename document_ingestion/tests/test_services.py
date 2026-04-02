@@ -428,7 +428,7 @@ class TestIngestResume:
 
     def test_page_number_one_based(self):
         path = _make_text_pdf([
-            ("EDUCATION", "Received degree from MIT in 2020, graduated with honours."),
+            ("EDUCATION", "Received degree from MIT in 2020, graduated with honors."),
         ])
         with patch("document_ingestion.services.ResumeSection", _MockSection):
             sections = ingest_resume(object(), path)

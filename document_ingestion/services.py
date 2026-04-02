@@ -290,8 +290,9 @@ def _section_key_for(heading_text: str, used_keys: set[str]) -> str:
     normalized = _normalize_heading(heading_text)
     base_key = _SECTION_KEY_MAP.get(normalized)
     if base_key is None:
-        # Derive from heading text: lowercase, replace non-alphanumeric runs with _
-        base_key = re.sub(r"[^a-z0-9]+", "_", normalized).strip("_") or "section"
+        # Derive from heading text: replace non-alphanumeric runs with _
+        # `normalized` is already lowercased, but use A-Z range for resilience
+        base_key = re.sub(r"[^A-Za-z0-9]+", "_", normalized).strip("_") or "section"
 
     key = base_key
     counter = 2
