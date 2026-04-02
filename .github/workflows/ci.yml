@@ -15,21 +15,6 @@ jobs:
     name: Django check + pytest
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: resumetailor_test
-          POSTGRES_USER: resumetailor
-          POSTGRES_PASSWORD: testpassword
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     env:
       DJANGO_SETTINGS_MODULE: resumetailor.settings.test
 
@@ -56,8 +41,3 @@ jobs:
         run: python -m pytest --tb=short -q --cov=. --cov-report=term-missing
         env:
           DJANGO_SETTINGS_MODULE: resumetailor.settings.test
-          PGDATABASE: resumetailor_test
-          PGUSER: resumetailor
-          PGPASSWORD: testpassword
-          PGHOST: localhost
-          PGPORT: '5432'

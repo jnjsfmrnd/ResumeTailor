@@ -46,6 +46,20 @@ resource resumetailorContainer 'Microsoft.Storage/storageAccounts/blobServices/c
   }
 }
 
+resource fileService 'Microsoft.Storage/storageAccounts/fileServices@2023-01-01' = {
+  parent: storageAccount
+  name: 'default'
+}
+
+resource sqliteShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-01-01' = {
+  parent: fileService
+  name: 'sqlite-data'
+  properties: {
+    shareQuota: 1
+  }
+}
+
 output storageAccountId string = storageAccount.id
 output storageAccountName string = storageAccount.name
 output blobEndpoint string = storageAccount.properties.primaryEndpoints.blob
+output sqliteShareName string = sqliteShare.name
