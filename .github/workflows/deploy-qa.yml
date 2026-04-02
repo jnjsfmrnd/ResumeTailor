@@ -56,13 +56,13 @@ jobs:
           client-id: ${{ env.AZURE_CLIENT_ID }}
 
       - name: Bicep build (lint)
-        uses: azure/cli@v2
+        uses: azure/cli@v3
         with:
           inlineScript: |
             az bicep build --file infra/main.bicep
 
       - name: Bicep what-if
-        uses: azure/cli@v2
+        uses: azure/cli@v3
         with:
           inlineScript: |
             az deployment group what-if \
@@ -108,7 +108,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Container Registry
-        uses: azure/cli@v2
+        uses: azure/cli@v3
         with:
           inlineScript: |
             az acr login --name ${{ env.REGISTRY_NAME }}
@@ -156,7 +156,7 @@ jobs:
           client-id: ${{ env.AZURE_CLIENT_ID }}
 
       - name: Deploy infrastructure and apps
-        uses: azure/cli@v2
+        uses: azure/cli@v3
         with:
           inlineScript: |
             az deployment group create \
@@ -172,7 +172,7 @@ jobs:
 
       # Container Apps Job runs migrate + collectstatic as a reliable one-off task.
       - name: Run database setup (migrate + collectstatic)
-        uses: azure/cli@v2
+        uses: azure/cli@v3
         with:
           inlineScript: |
             az containerapp job start \
