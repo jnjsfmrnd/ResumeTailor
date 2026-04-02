@@ -8,7 +8,8 @@
 4. engineer-c
 5. engineer-d
 6. engineer-e
-7. interview-prep-tutor
+7. engineer-f
+8. interview-prep-tutor
 
 ## Skill Assignment
 
@@ -48,6 +49,14 @@
 2. operations/github-actions-workflows
 3. testing/production-readiness
 
+### engineer-f
+
+1. languages/python
+2. infrastructure/bicep
+3. operations/github-actions-workflows
+4. development/configuration
+5. infrastructure/containerization
+
 ### interview-prep-tutor
 
 1. development/documentation
@@ -62,19 +71,20 @@
 4. engineer-c -> C1, C2
 5. engineer-d -> D1, D2
 6. engineer-e -> E1, E2
+7. engineer-f -> F1, F2, F3
 
 ## Schedule Mapping (10-Day Guide)
 
 The day numbers are a sequencing guide, not a calendar constraint. If a lane finishes early, the next dependent lane starts immediately — do not wait for the day boundary.
 
 1. Day 1: platform-lead (L1)
-2. Day 2: engineer-a (A1, A2), engineer-b (B1), engineer-e (E1)
-3. Day 3: engineer-b (B2), engineer-c (C1)
+2. Day 2: engineer-a (A1, A2), engineer-b (B1), engineer-e (E1), engineer-f (F1)
+3. Day 3: engineer-b (B2), engineer-c (C1), engineer-f (F1)
 4. Day 4: engineer-a (A2 close), engineer-c (C1, C2), platform-lead (L2)
-5. Day 5: engineer-d (D1), engineer-e (E2)
-6. Day 6: engineer-d (D2), engineer-c (C2 close)
-7. Day 7: platform-lead cross-lane integration gate
-8. Day 8: engineer-e QA readiness dry run, all engineers fix findings
+5. Day 5: engineer-d (D1), engineer-e (E2), engineer-f (F2)
+6. Day 6: engineer-d (D2), engineer-c (C2 close), engineer-f (F2 close)
+7. Day 7: platform-lead cross-lane integration gate, engineer-f (F3)
+8. Day 8: engineer-e QA readiness dry run, engineer-f SQLite readiness review and infra consistency closure, all engineers fix findings
 9. Day 9: all engineers end-to-end story walkthrough
 10. Day 10: council recheck and executive readiness review
 

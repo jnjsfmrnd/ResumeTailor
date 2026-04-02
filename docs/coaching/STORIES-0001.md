@@ -13,6 +13,18 @@
 - [x] Cover letter draft schema is documented.
 - [x] Generation and export service interfaces are documented.
 
+## Story 0A: Freeze SQLite Runtime Contract
+
+**As a** platform team,
+**I want** the SQLite runtime constraints documented before implementation,
+**So that** application, CI, and QA work stay aligned.
+
+### Acceptance Criteria
+
+- [ ] SQLite is documented as the approved database for local development, CI, and QA.
+- [ ] QA deployment constraints for writable storage, replica limits, and migration order are documented.
+- [ ] Rollback triggers for lock contention or data corruption are documented.
+
 ## Story 1: Upload PDF and Create Session
 
 **As a** user,
@@ -91,8 +103,21 @@
 ### Acceptance Criteria
 
 - [ ] Given an infrastructure change, when CI runs, then Bicep validation succeeds.
-- [ ] Given a release candidate, when deployment runs, then the app deploys to QA in `eastus`.
+- [ ] Given a release candidate, when deployment runs, then the app deploys to QA in `eastus` with the documented SQLite runtime profile.
 - [ ] Given a QA deployment, when health checks run, then all required checks pass.
+
+## Story 9: Align Runtime Configuration to SQLite
+
+**As a** team,
+**I want** one database contract across local, CI, and QA,
+**So that** environment drift is reduced before implementation starts.
+
+### Acceptance Criteria
+
+- [ ] Django settings contract defines one environment-driven SQLite database path.
+- [ ] CI contract removes managed PostgreSQL assumptions.
+- [ ] QA deployment contract removes managed PostgreSQL assumptions.
+- [ ] Azure Bicep and GitHub Actions files are reviewed and aligned to the approved SQLite planning baseline.
 
 ## Story 8: Run QA Validation
 
@@ -110,7 +135,7 @@
 
 ### Immediate Parallel Capacity
 
-After Story 0 is complete, 5 engineers can work in parallel with low overlap.
+After Story 0 and Story 0A are complete, 6 engineers can work in parallel with low overlap.
 
 ### Lane Ownership
 
@@ -119,6 +144,7 @@ After Story 0 is complete, 5 engineers can work in parallel with low overlap.
 3. Engineer C: Stories 2 and 4
 4. Engineer D: Stories 3, 5, and part of 6
 5. Engineer E: Stories 7 and 8
+6. Engineer F: Story 9 and SQLite migration readiness tasks
 
 ### Low-Overlap Rules
 
@@ -127,6 +153,7 @@ After Story 0 is complete, 5 engineers can work in parallel with low overlap.
 - Engineer C owns model and generation contracts.
 - Engineer D owns review and export UI contracts.
 - Engineer E owns infra and QA contracts.
+- Engineer F owns database-platform alignment across settings, CI, and QA planning artifacts.
 
 ## Engineer and Lead Story Pack
 
@@ -280,6 +307,55 @@ Acceptance Criteria
 - [ ] Eval baseline manifest is present and versioned.
 - [ ] QA checklist execution path is documented.
 
+### Engineer F (SQLite Runtime Alignment Lane)
+
+#### Engineer F Story F1: Runtime Database Contract
+
+**As a** platform engineer,
+**I want** one SQLite runtime contract across app, CI, and QA,
+**So that** implementation can proceed without environment-specific database drift.
+
+Acceptance Criteria
+
+- [ ] The technical spec and deployment plan identify SQLite as the approved local, CI, and QA database.
+- [ ] The app runtime contract defines one configurable SQLite database path.
+- [ ] The first implementation pass freezes the concrete SQLite environment contract, including the environment variable name, default behavior, and path handling rules.
+- [ ] The migration plan removes managed PostgreSQL assumptions from the implementation backlog.
+- [ ] Azure deployment and GitHub Actions consistency findings are mapped into the Engineer F backlog.
+
+#### Engineer F Story F2: QA SQLite Operating Profile
+
+**As a** platform engineer,
+**I want** QA operating constraints documented up front,
+**So that** SQLite risks are visible before implementation begins.
+
+Acceptance Criteria
+
+- [ ] QA replica limits are documented for SQLite safety.
+- [ ] Writable storage expectations are documented.
+- [ ] The first implementation pass freezes the shared writable storage model used by the web app, worker, and migration job.
+- [ ] The deployment contract states how migrations complete before user traffic is enabled.
+- [ ] Lock-contention and rollback triggers are documented in the planning packet.
+
+#### Engineer F Story F3: Azure and GitHub Actions Consistency Alignment
+
+**As a** platform engineer,
+**I want** the live Azure IaC and GitHub Actions artifacts aligned to the approved SQLite plan,
+**So that** implementation does not inherit conflicting deployment contracts.
+
+Acceptance Criteria
+
+- [ ] Azure Bicep files remove managed PostgreSQL assumptions.
+- [ ] GitHub Actions deployment workflow removes managed PostgreSQL secret and parameter assumptions.
+- [ ] CI workflow matches the documented SQLite test posture.
+- [ ] App settings, Docker, CI, GitHub Actions, and Azure IaC are aligned in one coordinated change set against the same SQLite contract.
+- [ ] Infra consistency findings are closed against the review artifact.
+
+Implementation note
+
+- Engineer F owns the first implementation pass that freezes the SQLite environment contract, the migration-before-traffic rule, and the shared writable storage model.
+- The PostgreSQL removal and SQLite rollout must be applied across all live artifacts together, not as piecemeal follow-up edits.
+
 ## Schedule of Work (10-Day Guide)
 
 The day numbers represent a suggested sequencing, not a hard calendar gate. Lanes that finish early hand off immediately and downstream lanes begin without waiting for the day boundary. The goal is working software, not calendar compliance.
@@ -287,17 +363,17 @@ The day numbers represent a suggested sequencing, not a hard calendar gate. Lane
 ### Week 1
 
 1. Day 1: Platform lead completes L1 contract freeze and dependency map.
-2. Day 2: Engineer A starts A1 and A2; Engineer B starts B1; Engineer E starts E1 scaffold validation.
-3. Day 3: Engineer B completes B1 and starts B2; Engineer C starts C1 against frozen contracts.
+2. Day 2: Engineer A starts A1 and A2; Engineer B starts B1; Engineer E starts E1 scaffold validation; Engineer F starts F1 runtime contract alignment.
+3. Day 3: Engineer B completes B1 and starts B2; Engineer C starts C1 against frozen contracts; Engineer F continues F1 against deployment constraints.
 4. Day 4: Engineer A closes A2; Engineer C continues C1 and starts C2; platform lead runs L2 integration gate.
-5. Day 5: Engineer D starts D1 using outputs from A and B; Engineer E starts E2 CI and checklist alignment.
+5. Day 5: Engineer D starts D1 using outputs from A and B; Engineer E starts E2 CI and checklist alignment; Engineer F starts F2 QA operating-profile hardening.
 
 ### Week 2
 
-1. Day 6: Engineer D continues D1 and begins D2 dual-download flow; Engineer C finalizes C2 timeout paths.
-2. Day 7: Cross-lane integration checkpoint led by platform lead; fix contract mismatches only.
-3. Day 8: Engineer E runs QA readiness checklist dry run; all lanes fix findings.
-4. Day 9: End-to-end story walkthrough against acceptance criteria across A-E lanes.
+1. Day 6: Engineer D continues D1 and begins D2 dual-download flow; Engineer C finalizes C2 timeout paths; Engineer F closes F2 documentation gaps.
+2. Day 7: Engineer F starts F3 Azure and GitHub Actions consistency alignment; cross-lane integration checkpoint led by platform lead; fix contract mismatches only.
+3. Day 8: Engineer E runs QA readiness checklist dry run; Engineer F validates SQLite-specific readiness assumptions and closes infra consistency findings; all lanes fix findings.
+4. Day 9: End-to-end story walkthrough against acceptance criteria across A-F lanes.
 5. Day 10: Council recheck and executive readiness review for implementation authorization.
 
 ## Dependency and Handoff Rules
@@ -305,5 +381,8 @@ The day numbers represent a suggested sequencing, not a hard calendar gate. Lane
 1. A and B outputs are prerequisites for D to complete review and export behavior.
 2. C depends on lead-frozen generation and credential contracts.
 3. E depends on final contract paths and artifact locations from lead and all lanes.
-4. Platform lead owns daily conflict resolution and contract-change approval.
+4. F depends on lead-frozen deployment and runtime contracts before implementation starts.
+5. F owns closure of Azure and GitHub Actions consistency findings before implementation authorization.
+6. F must deliver the SQLite contract freeze and all live artifact alignment in the same implementation pass so downstream lanes do not inherit mixed runtime assumptions.
+7. Platform lead owns daily conflict resolution and contract-change approval.
 

@@ -1,6 +1,6 @@
 - 2026-04-01: Use a spec-first workflow for ResumeTailor before any Django implementation.
 - 2026-04-01: User confirmed V1 editable input is PDF only, despite higher preservation risk than the earlier DOCX-first recommendation.
-- 2026-04-01: Recommend Django monolith with PostgreSQL, Celery, and Redis for the initial architecture.
+- 2026-04-01: Recommend Django monolith with Celery and Redis for the initial architecture; the original PostgreSQL recommendation was later superseded by SQLite for local development, CI, and QA.
 - 2026-04-01: Default model access path is an application-managed GitHub Models API key with a top-5 model selector for tailoring.
 - 2026-04-01: V1 exposes two GitHub Models credential modes only: application-managed key and user-supplied GitHub Models key for the active request.
 - 2026-04-01: Azure is the deployment target, with Bicep for IaC and GitHub Actions for CI/CD.
@@ -14,3 +14,4 @@
 - 2026-04-01: Installed workspace-scoped AgentX local runtime wrappers under .agentx and added PowerShell 7 as a required local dependency so AgentX CLI commands can run from this repo.
 - 2026-04-01: Added a dedicated interview-prep-tutor agent and a master interview prep document so project artifacts can be rehearsed as defensible senior-engineer interview answers.
 - 2026-04-01: Final approval-hardening pass removed ambiguous `local-first` wording from planning artifacts; use single-user plus QA-first hosted posture instead.
+- 2026-04-01: Replaced PostgreSQL with SQLite as the planned database for local development, CI, and QA to remove the managed database cost blocker; production database selection remains out of scope.

@@ -25,10 +25,11 @@ V1 uses one hosted QA environment only. There is no production environment in th
 - Azure Container Apps environment
 - Web Container App
 - Worker Container App
-- Azure Database for PostgreSQL Flexible Server
 - Azure Cache for Redis
-- Azure Storage Account
+- Azure Storage Account for document artifacts and mounted SQLite storage
 - Azure Key Vault
+
+The QA deployment removes Azure Database for PostgreSQL from the V1 footprint and uses a storage-backed SQLite file for application persistence.
 
 ## 4. Security Strategy
 
@@ -43,7 +44,7 @@ V1 uses one hosted QA environment only. There is no production environment in th
 
 - Web app health endpoint
 - Worker readiness check
-- Database connectivity check
+- SQLite file connectivity and migration state check
 - Redis connectivity check
 - Storage access check
 
@@ -51,6 +52,7 @@ V1 uses one hosted QA environment only. There is no production environment in th
 
 - Revert to the previous Container Apps revision.
 - Re-run infrastructure deployment only when config drift is involved.
+- Restore the last known-good SQLite database snapshot before resuming QA validation if data corruption or lock failures occur.
 - Do not reverse database migrations without an explicit migration rollback plan.
 
 ## 7. Bicep Layout
@@ -63,7 +65,6 @@ infra/
 	modules/
 		registry.bicep
 		compute.bicep
-		data.bicep
 		storage.bicep
 		secrets.bicep
 ```
@@ -75,15 +76,21 @@ infra/
 | environmentName | qa |
 | location | eastus |
 | webMinReplicas | 1 |
-| webMaxReplicas | 3 |
+| webMaxReplicas | 1 |
 | workerMinReplicas | 1 |
-| workerMaxReplicas | 2 |
-| postgresSku | Standard_B1ms |
-| postgresHaMode | Disabled |
-| postgresBackupDays | 7 |
+| workerMaxReplicas | 1 |
+| sqliteDbPath | /app/data/resumetailor.sqlite3 |
+| qaTrafficProfile | single-replica, low-concurrency |
 | redisSku | Basic |
 | redisSkuCapacity | 0 |
 | storageReplication | LRS |
+
+Implementation directive for Engineer F:
+
+- Freeze one concrete SQLite environment contract in the first implementation pass, including the environment variable name and default-path behavior.
+- Freeze one shared writable storage model for the web app, worker app, and setup job in the same pass.
+- Ensure migrations complete before user traffic is enabled; do not leave migration ordering as an implicit runtime behavior.
+- Align Django settings, Docker, CI, GitHub Actions, and Azure IaC to that contract in one coordinated change set.
 
 ## 9. Resource Naming
 
@@ -94,9 +101,9 @@ infra/
 | Container Apps Env | cae-resumetailor-qa |
 | Web App | ca-web-resumetailor-qa |
 | Worker App | ca-worker-resumetailor-qa |
-| PostgreSQL | psql-resumetailor-qa |
 | Redis | redis-resumetailor-qa |
 | Storage | stresumetailorqa |
+| SQLite path | /app/data/resumetailor.sqlite3 |
 | Key Vault | kv-resumetailor-qa |
 
 ## 10. QA Validation Checklist
@@ -105,6 +112,7 @@ infra/
 - Bicep what-if passes
 - Image build and push pass
 - Deployment to QA in `eastus` succeeds
+- SQLite path is writable before traffic is enabled
 - Health checks pass
 - Regression runner passes blocking checks
 
