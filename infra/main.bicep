@@ -13,32 +13,14 @@ param imageTag string = 'latest'
 @description('Minimum replicas for the web container app.')
 param webMinReplicas int = 1
 
-@description('Maximum replicas for the web container app.')
-param webMaxReplicas int = 3
+@description('Maximum replicas for the web container app. Must be 1 when using SQLite storage.')
+param webMaxReplicas int = 1
 
 @description('Minimum replicas for the worker container app.')
 param workerMinReplicas int = 1
 
-@description('Maximum replicas for the worker container app.')
-param workerMaxReplicas int = 2
-
-// --- PostgreSQL ---
-@description('PostgreSQL SKU name.')
-param postgresSku string = 'Standard_B1ms'
-
-@description('PostgreSQL high-availability mode.')
-@allowed(['Disabled', 'ZoneRedundant', 'SameZone'])
-param postgresHaMode string = 'Disabled'
-
-@description('PostgreSQL backup retention in days.')
-param postgresBackupDays int = 7
-
-@description('PostgreSQL admin username.')
-param postgresAdminUser string = 'resumetailor'
-
-@description('PostgreSQL admin password (injected via Key Vault ref at deploy time).')
-@secure()
-param postgresAdminPassword string
+@description('Maximum replicas for the worker container app. Must be 1 when using SQLite storage.')
+param workerMaxReplicas int = 1
 
 // --- Redis ---
 @description('Redis SKU name.')
@@ -74,7 +56,6 @@ var registryName = 'crresumetailor'
 var containerAppsEnvName = 'cae-resumetailor-${environmentName}'
 var webAppName = 'ca-web-resumetailor-${environmentName}'
 var workerAppName = 'ca-worker-resumetailor-${environmentName}'
-var postgresServerName = 'psql-resumetailor-${environmentName}'
 var redisCacheName = 'redis-resumetailor-${environmentName}'
 var storageAccountName = 'stresumetailor${environmentName}'
 var keyVaultName = 'kv-resumetailor-${environmentName}'
@@ -111,12 +92,6 @@ module data 'modules/data.bicep' = {
   name: 'data'
   params: {
     location: location
-    postgresServerName: postgresServerName
-    postgresAdminUser: postgresAdminUser
-    postgresAdminPassword: postgresAdminPassword
-    postgresSku: postgresSku
-    postgresHaMode: postgresHaMode
-    postgresBackupDays: postgresBackupDays
     redisCacheName: redisCacheName
     redisSku: redisSku
     redisSkuCapacity: redisSkuCapacity
@@ -137,9 +112,7 @@ module compute 'modules/compute.bicep' = {
     webMaxReplicas: webMaxReplicas
     workerMinReplicas: workerMinReplicas
     workerMaxReplicas: workerMaxReplicas
-    postgresHost: data.outputs.postgresServerFqdn
-    postgresAdminUser: postgresAdminUser
-    postgresAdminPassword: postgresAdminPassword
+    sqliteStorageShareName: storage.outputs.sqliteShareName
     redisHost: data.outputs.redisCacheHostName
     redisPrimaryKey: data.outputs.redisPrimaryKey
     djangoSecretKey: djangoSecretKey

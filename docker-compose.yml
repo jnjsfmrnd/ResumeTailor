@@ -1,24 +1,12 @@
 # Local development environment for ResumeTailor.
 # Run: docker compose up --build
 # Apply migrations: docker compose exec web python manage.py migrate
+#
+# NOTE: Both `web` and `worker` share the same SQLite file via the `sqlite_data`
+# named volume.  Scale web/worker to a single replica only — SQLite does not
+# support concurrent writers across processes.
 
 services:
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: resumetailor
-      POSTGRES_USER: resumetailor
-      POSTGRES_PASSWORD: localdev
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U resumetailor"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
     ports:
@@ -39,16 +27,12 @@ services:
       - .env.local
     environment:
       DJANGO_SETTINGS_MODULE: resumetailor.settings.base
-      PGHOST: db
-      PGPORT: "5432"
-      PGDATABASE: resumetailor
-      PGUSER: resumetailor
-      PGPASSWORD: localdev
+      SQLITE_DB_PATH: /app/data/resumetailor.sqlite3
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
+    volumes:
+      - sqlite_data:/app/data
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
@@ -66,18 +50,14 @@ services:
       - .env.local
     environment:
       DJANGO_SETTINGS_MODULE: resumetailor.settings.base
-      PGHOST: db
-      PGPORT: "5432"
-      PGDATABASE: resumetailor
-      PGUSER: resumetailor
-      PGPASSWORD: localdev
+      SQLITE_DB_PATH: /app/data/resumetailor.sqlite3
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
+    volumes:
+      - sqlite_data:/app/data
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
 
 volumes:
-  postgres_data:
+  sqlite_data:

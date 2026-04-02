@@ -69,8 +69,7 @@ jobs:
               --resource-group ${{ env.RESOURCE_GROUP }} \
               --template-file infra/main.bicep \
               --parameters infra/parameters/qa.bicepparam \
-              --parameters postgresAdminPassword="${{ secrets.POSTGRES_ADMIN_PASSWORD }}" \
-                           storageAccountKey="${{ secrets.AZURE_STORAGE_KEY }}" \
+              --parameters storageAccountKey="${{ secrets.AZURE_STORAGE_KEY }}" \
                            djangoSecretKey="${{ secrets.DJANGO_SECRET_KEY }}" \
                            githubModelsApiKey="${{ secrets.GITHUB_MODELS_API_KEY }}" \
                            djangoAllowedHosts="${{ secrets.DJANGO_ALLOWED_HOSTS }}"
@@ -164,7 +163,6 @@ jobs:
               --template-file infra/main.bicep \
               --parameters infra/parameters/qa.bicepparam \
               --parameters imageTag="${{ needs.build-and-push.outputs.image_tag }}" \
-                           postgresAdminPassword="${{ secrets.POSTGRES_ADMIN_PASSWORD }}" \
                            storageAccountKey="${{ secrets.AZURE_STORAGE_KEY }}" \
                            djangoSecretKey="${{ secrets.DJANGO_SECRET_KEY }}" \
                            githubModelsApiKey="${{ secrets.GITHUB_MODELS_API_KEY }}" \

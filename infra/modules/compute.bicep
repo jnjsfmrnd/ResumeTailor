@@ -24,24 +24,26 @@ param imageTag string = 'latest'
 @description('Minimum replicas for the web app.')
 param webMinReplicas int = 1
 
-@description('Maximum replicas for the web app.')
-param webMaxReplicas int = 3
+// SQLite on a shared Azure File Share does not support concurrent writers.
+// Keep this at 1 for any environment using the SQLite-backed storage.
+@description('Maximum replicas for the web app. Must be 1 when using SQLite storage.')
+@maxValue(1)
+param webMaxReplicas int = 1
 
 @description('Minimum replicas for the worker app.')
 param workerMinReplicas int = 1
 
-@description('Maximum replicas for the worker app.')
-param workerMaxReplicas int = 2
+// SQLite on a shared Azure File Share does not support concurrent writers.
+// Keep this at 1 for any environment using the SQLite-backed storage.
+@description('Maximum replicas for the worker app. Must be 1 when using SQLite storage.')
+@maxValue(1)
+param workerMaxReplicas int = 1
 
-@description('PostgreSQL FQDN.')
-param postgresHost string
+@description('SQLite database file path inside the container.')
+param sqliteDbPath string = '/app/data/resumetailor.sqlite3'
 
-@description('PostgreSQL admin username.')
-param postgresAdminUser string
-
-@description('PostgreSQL admin password.')
-@secure()
-param postgresAdminPassword string
+@description('Azure Storage file share name for the SQLite data volume.')
+param sqliteStorageShareName string
 
 @description('Redis hostname.')
 param redisHost string
@@ -93,15 +95,24 @@ resource containerAppsEnv 'Microsoft.App/managedEnvironments@2023-05-01' = {
   }
 }
 
+resource containerAppsEnvStorage 'Microsoft.App/managedEnvironments/storages@2023-05-01' = {
+  parent: containerAppsEnv
+  name: 'sqlite-storage'
+  properties: {
+    azureFile: {
+      accountName: storageAccountName
+      accountKey: storageAccountKey
+      shareName: sqliteStorageShareName
+      accessMode: 'ReadWrite'
+    }
+  }
+}
+
 var sharedEnvVars = [
   { name: 'DJANGO_SETTINGS_MODULE', value: 'resumetailor.settings.qa' }
   { name: 'DJANGO_ALLOWED_HOSTS', value: djangoAllowedHosts }
   { name: 'DJANGO_SECRET_KEY', secretRef: 'django-secret-key' }
-  { name: 'PGHOST', value: postgresHost }
-  { name: 'PGPORT', value: '5432' }
-  { name: 'PGDATABASE', value: 'resumetailor' }
-  { name: 'PGUSER', value: postgresAdminUser }
-  { name: 'PGPASSWORD', secretRef: 'postgres-password' }
+  { name: 'SQLITE_DB_PATH', value: sqliteDbPath }
   { name: 'CELERY_BROKER_URL', secretRef: 'redis-url' }
   { name: 'CELERY_RESULT_BACKEND', secretRef: 'redis-url' }
   { name: 'GITHUB_MODELS_API_KEY', secretRef: 'github-models-api-key' }
@@ -111,7 +122,6 @@ var sharedEnvVars = [
 
 var sharedSecrets = [
   { name: 'django-secret-key', value: djangoSecretKey }
-  { name: 'postgres-password', value: postgresAdminPassword }
   { name: 'redis-url', value: 'rediss://:${redisPrimaryKey}@${redisHost}:6380/0' }
   { name: 'github-models-api-key', value: githubModelsApiKey }
   { name: 'storage-account-key', value: storageAccountKey }
@@ -121,6 +131,7 @@ var sharedSecrets = [
 resource webApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: webAppName
   location: location
+  dependsOn: [containerAppsEnvStorage]
   properties: {
     managedEnvironmentId: containerAppsEnv.id
     configuration: {
@@ -142,6 +153,12 @@ resource webApp 'Microsoft.App/containerApps@2023-05-01' = {
             memory: '1Gi'
           }
           env: sharedEnvVars
+          volumeMounts: [
+            {
+              volumeName: 'sqlite-data'
+              mountPath: '/app/data'
+            }
+          ]
           probes: [
             {
               type: 'Liveness'
@@ -164,6 +181,13 @@ resource webApp 'Microsoft.App/containerApps@2023-05-01' = {
           ]
         }
       ]
+      volumes: [
+        {
+          name: 'sqlite-data'
+          storageType: 'AzureFile'
+          storageName: 'sqlite-storage'
+        }
+      ]
       scale: {
         minReplicas: webMinReplicas
         maxReplicas: webMaxReplicas
@@ -175,6 +199,7 @@ resource webApp 'Microsoft.App/containerApps@2023-05-01' = {
 resource workerApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: workerAppName
   location: location
+  dependsOn: [containerAppsEnvStorage]
   properties: {
     managedEnvironmentId: containerAppsEnv.id
     configuration: {
@@ -191,6 +216,19 @@ resource workerApp 'Microsoft.App/containerApps@2023-05-01' = {
             memory: '1Gi'
           }
           env: sharedEnvVars
+          volumeMounts: [
+            {
+              volumeName: 'sqlite-data'
+              mountPath: '/app/data'
+            }
+          ]
+        }
+      ]
+      volumes: [
+        {
+          name: 'sqlite-data'
+          storageType: 'AzureFile'
+          storageName: 'sqlite-storage'
         }
       ]
       scale: {
@@ -213,6 +251,7 @@ output workerAppId string = workerApp.id
 resource setupJob 'Microsoft.App/jobs@2023-05-01' = {
   name: setupJobName
   location: location
+  dependsOn: [containerAppsEnvStorage]
   properties: {
     environmentId: containerAppsEnv.id
     configuration: {
@@ -236,7 +275,20 @@ resource setupJob 'Microsoft.App/jobs@2023-05-01' = {
             memory: '0.5Gi'
           }
           env: sharedEnvVars
+          volumeMounts: [
+            {
+              volumeName: 'sqlite-data'
+              mountPath: '/app/data'
+            }
+          ]
           command: ['/bin/sh', '-c', 'python manage.py migrate --noinput && python manage.py collectstatic --noinput']
+        }
+      ]
+      volumes: [
+        {
+          name: 'sqlite-data'
+          storageType: 'AzureFile'
+          storageName: 'sqlite-storage'
         }
       ]
     }
