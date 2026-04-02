@@ -15,6 +15,7 @@ from collections import Counter
 from typing import NamedTuple
 
 import fitz  # PyMuPDF
+from django.db import transaction
 
 from resume_sessions.models import ResumeSection, ResumeSession
 
@@ -168,21 +169,26 @@ def ingest_resume(
 
     section_data = _build_sections(blocks)
 
-    saved: list[ResumeSection] = []
-    for order_index, sd in enumerate(section_data):
-        section = ResumeSection(
-            session=session,
-            section_key=sd["section_key"],
-            order_index=order_index,
-            page_number=sd["page_number"],
-            bbox_x0=sd["bbox_x0"],
-            bbox_y0=sd["bbox_y0"],
-            bbox_x1=sd["bbox_x1"],
-            bbox_y1=sd["bbox_y1"],
-            original_content=sd["original_content"],
-        )
-        section.save()
-        saved.append(section)
+    with transaction.atomic():
+        # Delete any pre-existing sections so re-runs (e.g. duplicate Celery
+        # delivery) are idempotent and don't collide on unique_together.
+        session.sections.all().delete()
+
+        saved: list[ResumeSection] = []
+        for order_index, sd in enumerate(section_data):
+            section = ResumeSection(
+                session=session,
+                section_key=sd["section_key"],
+                order_index=order_index,
+                page_number=sd["page_number"],
+                bbox_x0=sd["bbox_x0"],
+                bbox_y0=sd["bbox_y0"],
+                bbox_x1=sd["bbox_x1"],
+                bbox_y1=sd["bbox_y1"],
+                original_content=sd["original_content"],
+            )
+            section.save()
+            saved.append(section)
 
     return saved
 
@@ -209,12 +215,26 @@ def _extract_blocks(doc: fitz.Document) -> list[_Block]:
             block_bold = False
 
             for line in block["lines"]:
+                line_text = ""
                 for span in line["spans"]:
-                    block_text += span["text"]
+                    span_text = span["text"]
+                    # Insert a space between spans when neither side provides
+                    # whitespace, to avoid gluing words together (PyMuPDF dict
+                    # mode splits spans on font/style boundaries).
+                    if (
+                        line_text
+                        and span_text
+                        and not line_text[-1].isspace()
+                        and not span_text[0].isspace()
+                    ):
+                        line_text += " "
+                    line_text += span_text
                     if span["size"] > max_size:
                         max_size = span["size"]
                     if span["flags"] & _BOLD_FLAG:
                         block_bold = True
+                # Preserve line boundaries so downstream classifiers can use '\n'.
+                block_text += line_text + "\n"
 
             stripped = block_text.strip()
             if not stripped:

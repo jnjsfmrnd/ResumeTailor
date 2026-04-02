@@ -4,8 +4,9 @@ Tests use real PyMuPDF to create in-memory PDFs; DB interactions are mocked.
 """
 
 import tempfile
+from contextlib import contextmanager
 from dataclasses import dataclass, field
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import fitz
 import pytest
@@ -41,24 +42,24 @@ def _make_text_pdf(sections: list[tuple[str, str]]) -> str:
     *sections* is a list of (heading, body) tuples.  Headings are inserted
     at 14 pt; body text at 11 pt.  Returns the temp-file path.
     """
-    doc = fitz.open()
-    page = doc.new_page(width=612, height=792)
-    y = 80.0
-    for heading, body in sections:
-        page.insert_text((72, y), heading, fontsize=14)
-        y += 24
-        for line in body.splitlines():
-            page.insert_text((72, y), line, fontsize=11)
-            y += 16
-        y += 12
-    return _write_pdf(doc)
+    with fitz.open() as doc:
+        page = doc.new_page(width=612, height=792)
+        y = 80.0
+        for heading, body in sections:
+            page.insert_text((72, y), heading, fontsize=14)
+            y += 24
+            for line in body.splitlines():
+                page.insert_text((72, y), line, fontsize=11)
+                y += 16
+            y += 12
+        return _write_pdf(doc)
 
 
 def _make_blank_pdf() -> str:
     """Create a PDF with no text at all (simulates image-only)."""
-    doc = fitz.open()
-    doc.new_page()
-    return _write_pdf(doc)
+    with fitz.open() as doc:
+        doc.new_page()
+        return _write_pdf(doc)
 
 
 def _make_encrypted_pdf() -> str:
@@ -371,19 +372,41 @@ class _MockSection:
         self.save_calls += 1
 
 
+@contextmanager
+def _noop_atomic():
+    """Context manager that replaces transaction.atomic for unit tests."""
+    yield
+
+
+def _mock_session():
+    """Return a minimal session mock for ingest_resume unit tests."""
+    session = MagicMock()
+    session.sections.all.return_value.delete.return_value = None
+    return session
+
+
 # ---------------------------------------------------------------------------
 # B1: ingest_resume (integration — DB mocked)
 # ---------------------------------------------------------------------------
 
 
 class TestIngestResume:
+    def setup_method(self):
+        self._atomic_patcher = patch(
+            "document_ingestion.services.transaction.atomic", _noop_atomic
+        )
+        self._atomic_patcher.start()
+
+    def teardown_method(self):
+        self._atomic_patcher.stop()
+
     def test_returns_sections_for_valid_pdf(self):
         path = _make_text_pdf([
             ("EXPERIENCE", "Software Engineer at Acme Corp for three years."),
             ("EDUCATION", "B.S. Computer Science, Massachusetts Institute of Technology."),
         ])
         with patch("document_ingestion.services.ResumeSection", _MockSection):
-            sections = ingest_resume(object(), path)
+            sections = ingest_resume(_mock_session(), path)
         assert len(sections) >= 2
 
     def test_order_index_contiguous_zero_based(self):
@@ -393,7 +416,7 @@ class TestIngestResume:
             ("SKILLS", "Python, Django, Redis, PostgreSQL, Docker, Kubernetes."),
         ])
         with patch("document_ingestion.services.ResumeSection", _MockSection):
-            sections = ingest_resume(object(), path)
+            sections = ingest_resume(_mock_session(), path)
         indices = [s.order_index for s in sections]
         assert indices == list(range(len(sections)))
 
@@ -403,7 +426,7 @@ class TestIngestResume:
             ("EDUCATION", "Obtained bachelor and master degrees in computer science."),
         ])
         with patch("document_ingestion.services.ResumeSection", _MockSection):
-            sections = ingest_resume(object(), path)
+            sections = ingest_resume(_mock_session(), path)
         keys = [s.section_key for s in sections]
         assert len(keys) == len(set(keys))
 
@@ -412,7 +435,7 @@ class TestIngestResume:
             ("SKILLS", "Python, Django, Redis, PostgreSQL, Celery, Docker."),
         ])
         with patch("document_ingestion.services.ResumeSection", _MockSection):
-            sections = ingest_resume(object(), path)
+            sections = ingest_resume(_mock_session(), path)
         for s in sections:
             assert s.original_content.strip()
 
@@ -421,7 +444,7 @@ class TestIngestResume:
             ("EXPERIENCE", "Some work experience content at a well-known company."),
         ])
         with patch("document_ingestion.services.ResumeSection", _MockSection):
-            sections = ingest_resume(object(), path)
+            sections = ingest_resume(_mock_session(), path)
         for s in sections:
             assert s.bbox_x0 < s.bbox_x1
             assert s.bbox_y0 < s.bbox_y1
@@ -431,19 +454,19 @@ class TestIngestResume:
             ("EDUCATION", "Received degree from MIT in 2020, graduated with honors."),
         ])
         with patch("document_ingestion.services.ResumeSection", _MockSection):
-            sections = ingest_resume(object(), path)
+            sections = ingest_resume(_mock_session(), path)
         for s in sections:
             assert s.page_number >= 1
 
     def test_raises_unsupported_for_blank_pdf(self):
         path = _make_blank_pdf()
         with pytest.raises(UnsupportedPDFError):
-            ingest_resume(object(), path)
+            ingest_resume(_mock_session(), path)
 
     def test_raises_unsupported_for_encrypted_pdf(self):
         path = _make_encrypted_pdf()
         with pytest.raises(UnsupportedPDFError):
-            ingest_resume(object(), path)
+            ingest_resume(_mock_session(), path)
 
     def test_save_called_once_per_section(self):
         path = _make_text_pdf([
@@ -451,6 +474,6 @@ class TestIngestResume:
             ("EDUCATION", "Content two: studied engineering at a top university."),
         ])
         with patch("document_ingestion.services.ResumeSection", _MockSection):
-            sections = ingest_resume(object(), path)
+            sections = ingest_resume(_mock_session(), path)
         for s in sections:
             assert s.save_calls == 1

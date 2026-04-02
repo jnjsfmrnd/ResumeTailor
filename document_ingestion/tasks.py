@@ -3,6 +3,7 @@
 import logging
 
 from celery import shared_task
+from django.db import transaction
 
 from resume_sessions.models import ResumeSession
 
@@ -23,15 +24,29 @@ def ingest_resume_task(self, session_id: str) -> None:
 
     The task does not retry on failure: unsupported PDFs and unexpected
     errors both land the session in ``failed`` status immediately.
+
+    Duplicate delivery safety: the task acquires a row-level lock and checks
+    the current status before proceeding so that a second concurrent delivery
+    is a no-op instead of causing uniqueness-constraint violations.
     """
     try:
-        session = ResumeSession.objects.get(pk=session_id)
+        with transaction.atomic():
+            session = ResumeSession.objects.select_for_update().get(pk=session_id)
+            if session.status not in (
+                ResumeSession.Status.PENDING,
+                ResumeSession.Status.INGESTING,
+            ):
+                logger.info(
+                    "ingest_resume_task: session %s already in status '%s', skipping",
+                    session_id,
+                    session.status,
+                )
+                return
+            session.status = ResumeSession.Status.INGESTING
+            session.save(update_fields=["status", "updated_at"])
     except ResumeSession.DoesNotExist:
         logger.error("ingest_resume_task: session %s not found", session_id)
         return
-
-    session.status = ResumeSession.Status.INGESTING
-    session.save(update_fields=["status", "updated_at"])
 
     try:
         ingest_resume(session, session.source_pdf_path)
