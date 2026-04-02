@@ -23,7 +23,6 @@ import tempfile
 
 import fitz  # PyMuPDF
 from django.test import TestCase, override_settings
-from django.urls import reverse
 
 from resume_sessions.models import ResumeSession
 
@@ -36,17 +35,17 @@ _CURATED_MODELS = ["gpt-5.1", "claude-sonnet-4", "o3", "gpt-4.1", "llama-4-maver
 
 def _make_text_pdf(text: str = "John Smith\nSoftware Engineer") -> bytes:
     """Return bytes of a minimal valid PDF containing selectable text."""
-    doc = fitz.open()
-    page = doc.new_page()
-    page.insert_text((72, 72), text)
-    return doc.tobytes()
+    with fitz.open() as doc:
+        page = doc.new_page()
+        page.insert_text((72, 72), text)
+        return doc.tobytes()
 
 
 def _make_image_only_pdf() -> bytes:
     """Return bytes of a minimal PDF with no selectable text (simulates a scan)."""
-    doc = fitz.open()
-    doc.new_page()  # blank page — no text, no images
-    return doc.tobytes()
+    with fitz.open() as doc:
+        doc.new_page()  # blank page — no text, no images
+        return doc.tobytes()
 
 
 def _valid_post_data(**overrides):
@@ -59,10 +58,6 @@ def _valid_post_data(**overrides):
     }
     data.update(overrides)
     return data
-
-
-def _pdf_upload_file(content: bytes, filename: str = "resume.pdf"):
-    return io.BytesIO(content), filename
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
@@ -80,12 +75,24 @@ def _post_upload(client, pdf_bytes: bytes, filename: str = "resume.pdf", **field
 
 
 @override_settings(
-    MEDIA_ROOT=tempfile.mkdtemp(),
     RESUME_TAILOR_CURATED_MODELS=_CURATED_MODELS,
     RESUME_TAILOR_DEFAULT_MODEL="gpt-5.1",
 )
 class UploadViewTests(TestCase):
     """Tests for POST /upload/ (Story A1 + A2)."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._temp_media_dir = tempfile.TemporaryDirectory()
+        cls._media_override = override_settings(MEDIA_ROOT=cls._temp_media_dir.name)
+        cls._media_override.enable()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._media_override.disable()
+        cls._temp_media_dir.cleanup()
+        super().tearDownClass()
 
     # ── A1: happy-path upload ─────────────────────────────────────────────────
 
