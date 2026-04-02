@@ -25,12 +25,10 @@ def is_pdf_text_extractable(file_bytes: bytes) -> bool:
         False — file is unreadable, not a valid PDF, or is entirely image-only.
     """
     try:
-        doc = fitz.open(stream=file_bytes, filetype="pdf")
+        with fitz.open(stream=file_bytes, filetype="pdf") as doc:
+            for page in doc:
+                if page.get_text().strip():
+                    return True
     except Exception:
         return False
-
-    for page in doc:
-        if page.get_text().strip():
-            return True
-
     return False
