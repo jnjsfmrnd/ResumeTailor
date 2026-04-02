@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'copilot/**'
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Django check + pytest
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: resumetailor_test
+          POSTGRES_USER: resumetailor
+          POSTGRES_PASSWORD: testpassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DJANGO_SETTINGS_MODULE: resumetailor.settings.test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest pytest-django
+
+      - name: Django system check
+        run: python manage.py check
+        env:
+          DJANGO_SETTINGS_MODULE: resumetailor.settings.base
+
+      - name: Run pytest
+        run: python -m pytest --tb=short -q
+        env:
+          DJANGO_SETTINGS_MODULE: resumetailor.settings.test
+          PGDATABASE: resumetailor_test
+          PGUSER: resumetailor
+          PGPASSWORD: testpassword
+          PGHOST: localhost
+          PGPORT: '5432'
