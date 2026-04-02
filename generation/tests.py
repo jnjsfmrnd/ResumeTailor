@@ -23,12 +23,10 @@ from resume_sessions.models import (
 )
 
 from .service import (
-    CoverLetterDraftOutput,
     GenerationRequest,
     GenerationResult,
     GenerationService,
     SectionInput,
-    SectionOutput,
     TIMEOUT_USER_MESSAGES,
 )
 

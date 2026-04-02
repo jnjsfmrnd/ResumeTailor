@@ -4,8 +4,6 @@
 /health/ready/ — readiness: confirms DB and Redis are reachable
 """
 
-import json
-
 from django.conf import settings
 from django.db import connection, OperationalError
 from django.http import JsonResponse

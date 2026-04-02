@@ -19,7 +19,6 @@ Exit codes:
 """
 
 import json
-import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -89,7 +88,6 @@ class Command(BaseCommand):
             self._validate_record(record, record_id, failures, timings_seconds)
 
         # Compute p95 if we have timing data
-        p95_ok = True
         p95_value = None
         if timings_seconds:
             sorted_timings = sorted(timings_seconds)
@@ -100,7 +98,6 @@ class Command(BaseCommand):
                     f"p95 generation time {p95_value:.1f}s exceeds threshold "
                     f"{P95_THRESHOLD_SECONDS}s"
                 )
-                p95_ok = False
 
         passed = len(failures) == 0
 
