@@ -1,4 +1,4 @@
-"""Test settings: extends base but overrides DB to SQLite (in-memory)."""
+"""Test settings — uses SQLite in-memory to avoid PostgreSQL dependency in CI."""
 
 from .base import *  # noqa: F401, F403
 
