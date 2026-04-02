@@ -7,6 +7,15 @@ on:
         description: 'Image tag to build and deploy (default: git SHA)'
         required: false
         default: ''
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [main]
+
+# Prevent concurrent QA deployments; cancel any in-progress run when a new one starts.
+concurrency:
+  group: deploy-qa
+  cancel-in-progress: true
 
 permissions:
   id-token: write
@@ -21,14 +30,23 @@ env:
   REGISTRY_LOGIN_SERVER: crresumetailor.azurecr.io
   WEB_APP_NAME: ca-web-resumetailor-qa
   WORKER_APP_NAME: ca-worker-resumetailor-qa
+  SETUP_JOB_NAME: job-setup-resumetailor-qa
+  # Use the triggering commit SHA so workflow_run deploys the right code.
+  DEPLOY_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
 jobs:
   validate-bicep:
     name: Bicep validate and what-if
     runs-on: ubuntu-latest
+    # For workflow_run: only proceed when CI passed; always run for manual dispatch.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
@@ -66,13 +84,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
 
       - name: Set image tag
         id: set-tag
         run: |
           TAG="${{ github.event.inputs.image_tag }}"
           if [ -z "$TAG" ]; then
-            TAG="${{ github.sha }}"
+            TAG="${{ env.DEPLOY_SHA }}"
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
@@ -82,6 +102,10 @@ jobs:
           tenant-id: ${{ env.AZURE_TENANT_ID }}
           subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
           client-id: ${{ env.AZURE_CLIENT_ID }}
+
+      # Buildx enables BuildKit features including the GitHub Actions cache driver.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Container Registry
         uses: azure/cli@v2
@@ -98,6 +122,8 @@ jobs:
           tags: |
             ${{ env.REGISTRY_LOGIN_SERVER }}/resumetailor-web:${{ steps.set-tag.outputs.tag }}
             ${{ env.REGISTRY_LOGIN_SERVER }}/resumetailor-web:latest
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
 
       - name: Build and push worker image
         uses: docker/build-push-action@v5
@@ -108,14 +134,19 @@ jobs:
           tags: |
             ${{ env.REGISTRY_LOGIN_SERVER }}/resumetailor-worker:${{ steps.set-tag.outputs.tag }}
             ${{ env.REGISTRY_LOGIN_SERVER }}/resumetailor-worker:latest
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,mode=max,scope=worker
 
   deploy:
     name: Deploy to QA
     runs-on: ubuntu-latest
     needs: build-and-push
+    environment: qa
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
@@ -139,31 +170,46 @@ jobs:
                            githubModelsApiKey="${{ secrets.GITHUB_MODELS_API_KEY }}" \
                            djangoAllowedHosts="${{ secrets.DJANGO_ALLOWED_HOSTS }}"
 
-      - name: Run Django migrations
+      # Container Apps Job runs migrate + collectstatic as a reliable one-off task.
+      - name: Run database setup (migrate + collectstatic)
         uses: azure/cli@v2
         with:
           inlineScript: |
-            az containerapp exec \
-              --name ${{ env.WEB_APP_NAME }} \
-              --resource-group ${{ env.RESOURCE_GROUP }} \
-              --command "python manage.py migrate --noinput"
+            az containerapp job start \
+              --name ${{ env.SETUP_JOB_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }}
 
-      - name: Collect static files
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az containerapp exec \
-              --name ${{ env.WEB_APP_NAME }} \
-              --resource-group ${{ env.RESOURCE_GROUP }} \
-              --command "python manage.py collectstatic --noinput"
+            echo "Waiting for database setup job to complete (max 10 min)..."
+            for i in $(seq 1 60); do
+              STATUS=$(az containerapp job execution list \
+                --name ${{ env.SETUP_JOB_NAME }} \
+                --resource-group ${{ env.RESOURCE_GROUP }} \
+                --query "sort_by([],&properties.startTime)[-1].properties.status" \
+                -o tsv 2>/dev/null || echo "Unknown")
+              echo "  attempt $i/60: $STATUS"
+              if [ "$STATUS" = "Succeeded" ]; then
+                echo "Database setup completed successfully."
+                exit 0
+              fi
+              if [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Stopped" ]; then
+                echo "Database setup failed with status: $STATUS"
+                exit 1
+              fi
+              sleep 10
+            done
+            echo "Database setup timed out after 10 minutes"
+            exit 1
 
   smoke:
     name: Smoke tests
     runs-on: ubuntu-latest
     needs: deploy
+    environment: qa
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5

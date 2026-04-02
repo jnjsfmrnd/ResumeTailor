@@ -68,6 +68,9 @@ param storageAccountName string
 @secure()
 param storageAccountKey string
 
+@description('Name for the one-off setup Container Apps Job (migrate + collectstatic).')
+param setupJobName string
+
 var registryCredentials = [
   {
     server: registryLoginServer
@@ -202,3 +205,42 @@ output containerAppsEnvId string = containerAppsEnv.id
 output webAppFqdn string = webApp.properties.configuration.ingress.fqdn
 output webAppId string = webApp.id
 output workerAppId string = workerApp.id
+
+// ---------------------------------------------------------------------------
+// One-off setup job: runs Django migrate + collectstatic after every deploy.
+// Triggered manually from the Deploy QA workflow via `az containerapp job start`.
+// ---------------------------------------------------------------------------
+resource setupJob 'Microsoft.App/jobs@2023-05-01' = {
+  name: setupJobName
+  location: location
+  properties: {
+    environmentId: containerAppsEnv.id
+    configuration: {
+      triggerType: 'Manual'
+      replicaTimeout: 600
+      replicaRetryLimit: 0
+      manualTriggerConfig: {
+        replicaCompletionCount: 1
+        parallelism: 1
+      }
+      registries: registryCredentials
+      secrets: sharedSecrets
+    }
+    template: {
+      containers: [
+        {
+          name: 'setup'
+          image: '${registryLoginServer}/resumetailor-web:${imageTag}'
+          resources: {
+            cpu: json('0.25')
+            memory: '0.5Gi'
+          }
+          env: sharedEnvVars
+          command: ['/bin/sh', '-c', 'python manage.py migrate --noinput && python manage.py collectstatic --noinput']
+        }
+      ]
+    }
+  }
+}
+
+output setupJobName string = setupJob.name

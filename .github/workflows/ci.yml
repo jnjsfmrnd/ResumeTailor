@@ -44,13 +44,16 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt pytest pytest-django
+        run: pip install -r requirements.txt pytest pytest-django pytest-cov ruff
+
+      - name: Lint (ruff)
+        run: ruff check .
 
       - name: Django system check
         run: python manage.py check
 
-      - name: Run pytest
-        run: python -m pytest --tb=short -q
+      - name: Run pytest with coverage
+        run: python -m pytest --tb=short -q --cov=. --cov-report=term-missing
         env:
           DJANGO_SETTINGS_MODULE: resumetailor.settings.test
           PGDATABASE: resumetailor_test

@@ -21,6 +21,7 @@ build/
 # Django local settings / secrets
 *.env
 .env
+.env.local
 
 # OS
 .DS_Store
