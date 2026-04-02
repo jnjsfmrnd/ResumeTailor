@@ -38,7 +38,7 @@ def readiness(request):
         client = redis_lib.from_url(redis_url, socket_connect_timeout=2)
         client.ping()
         checks["redis"] = "ok"
-    except Exception as exc:  # noqa: BLE001
+    except (redis_lib.ConnectionError, redis_lib.TimeoutError, redis_lib.RedisError) as exc:
         checks["redis"] = f"error: {exc}"
         ok = False
 

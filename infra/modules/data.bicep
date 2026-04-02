@@ -33,7 +33,7 @@ param redisSku string = 'Basic'
 @description('Redis SKU capacity (0=250MB, 1=1GB, ...).')
 param redisSkuCapacity int = 0
 
-resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-03-01-preview' = {
+resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2022-12-01' = {
   name: postgresServerName
   location: location
   sku: {
@@ -57,7 +57,7 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-03-01-pr
   }
 }
 
-resource postgresDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-03-01-preview' = {
+resource postgresDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2022-12-01' = {
   parent: postgresServer
   name: 'resumetailor'
   properties: {
@@ -66,7 +66,7 @@ resource postgresDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-03
   }
 }
 
-resource postgresFirewall 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2023-03-01-preview' = {
+resource postgresFirewall 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2022-12-01' = {
   parent: postgresServer
   name: 'AllowAzureServices'
   properties: {

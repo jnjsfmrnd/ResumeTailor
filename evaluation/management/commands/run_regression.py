@@ -24,10 +24,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-DEFAULT_BASELINE = Path(__file__).resolve().parents[3] / \
-    "docs" / "data-science" / "baselines" / "resume-tailor-v1-baseline.json"
+DEFAULT_BASELINE = (
+    Path(settings.BASE_DIR) / "docs" / "data-science" / "baselines" / "resume-tailor-v1-baseline.json"
+)
 
 REQUIRED_SECTION_FIELDS = {"section_key", "original_content"}
 REQUIRED_SESSION_FIELDS = {"id", "generation_mode", "credential_mode"}

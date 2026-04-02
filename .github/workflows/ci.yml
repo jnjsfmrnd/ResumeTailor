@@ -7,6 +7,9 @@ on:
       - 'copilot/**'
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Django check + pytest
@@ -44,7 +47,7 @@ jobs:
         run: pip install -r requirements.txt pytest pytest-django
 
       - name: Django system check
-        run: python manage.py check --deploy 2>&1 || true
+        run: python manage.py check
         env:
           DJANGO_SETTINGS_MODULE: resumetailor.settings.base
 

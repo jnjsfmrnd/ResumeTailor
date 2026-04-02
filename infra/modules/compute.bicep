@@ -175,7 +175,6 @@ resource workerApp 'Microsoft.App/containerApps@2023-05-01' = {
   properties: {
     managedEnvironmentId: containerAppsEnv.id
     configuration: {
-      ingress: null
       registries: registryCredentials
       secrets: sharedSecrets
     }
