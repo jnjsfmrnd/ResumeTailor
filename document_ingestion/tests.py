@@ -36,17 +36,17 @@ _CURATED_MODELS = ["gpt-5.1", "claude-sonnet-4", "o3", "gpt-4.1", "llama-4-maver
 
 def _make_text_pdf(text: str = "John Smith\nSoftware Engineer") -> bytes:
     """Return bytes of a minimal valid PDF containing selectable text."""
-    doc = fitz.open()
-    page = doc.new_page()
-    page.insert_text((72, 72), text)
-    return doc.tobytes()
+    with fitz.open() as doc:
+        page = doc.new_page()
+        page.insert_text((72, 72), text)
+        return doc.tobytes()
 
 
 def _make_image_only_pdf() -> bytes:
     """Return bytes of a minimal PDF with no selectable text (simulates a scan)."""
-    doc = fitz.open()
-    doc.new_page()  # blank page — no text, no images
-    return doc.tobytes()
+    with fitz.open() as doc:
+        doc.new_page()  # blank page — no text, no images
+        return doc.tobytes()
 
 
 def _valid_post_data(**overrides):
