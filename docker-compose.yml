@@ -1,0 +1,83 @@
+# Local development environment for ResumeTailor.
+# Run: docker compose up --build
+# Apply migrations: docker compose exec web python manage.py migrate
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: resumetailor
+      POSTGRES_USER: resumetailor
+      POSTGRES_PASSWORD: localdev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resumetailor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.local
+    environment:
+      DJANGO_SETTINGS_MODULE: resumetailor.settings.base
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: resumetailor
+      PGUSER: resumetailor
+      PGPASSWORD: localdev
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    env_file:
+      - .env.local
+    environment:
+      DJANGO_SETTINGS_MODULE: resumetailor.settings.base
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: resumetailor
+      PGUSER: resumetailor
+      PGPASSWORD: localdev
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

@@ -78,6 +78,7 @@ var postgresServerName = 'psql-resumetailor-${environmentName}'
 var redisCacheName = 'redis-resumetailor-${environmentName}'
 var storageAccountName = 'stresumetailor${environmentName}'
 var keyVaultName = 'kv-resumetailor-${environmentName}'
+var setupJobName = 'job-setup-resumetailor-${environmentName}'
 
 // --- Modules ---
 
@@ -146,6 +147,7 @@ module compute 'modules/compute.bicep' = {
     djangoAllowedHosts: djangoAllowedHosts
     storageAccountName: storageAccountName
     storageAccountKey: storageAccountKey
+    setupJobName: setupJobName
   }
 }
 
@@ -154,3 +156,4 @@ output registryLoginServer string = registry.outputs.loginServer
 output webAppFqdn string = compute.outputs.webAppFqdn
 output keyVaultUri string = secrets.outputs.keyVaultUri
 output storageAccountName string = storage.outputs.storageAccountName
+output setupJobName string = compute.outputs.setupJobName

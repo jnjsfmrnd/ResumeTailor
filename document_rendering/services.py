@@ -13,7 +13,6 @@ Coordinate system note:
   downward).  The conversion is performed in _pdf_rect().
 """
 
-import io
 import textwrap
 
 import fitz  # PyMuPDF

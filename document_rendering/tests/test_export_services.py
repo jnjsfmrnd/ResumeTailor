@@ -2,7 +2,7 @@
 
 from django.test import TestCase, override_settings
 
-from document_rendering.services import ExportError, ExportService
+from document_rendering.services import ExportService
 from resume_sessions.models import CoverLetterDraft, ResumeSection, ResumeSession
 
 
