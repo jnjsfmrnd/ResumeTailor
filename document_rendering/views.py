@@ -13,7 +13,7 @@ Output rules (contract-enforced):
   - Session status is set to COMPLETE after a successful export.
 """
 
-import os
+import logging
 
 from django.core.files.storage import default_storage
 from django.http import Http404, HttpResponse
@@ -24,8 +24,10 @@ from resume_sessions.models import ResumeSession
 
 from .services import ExportError, ExportService
 
+_logger = logging.getLogger(__name__)
 _RESUME_FILENAME = "tailored-resume.pdf"
 _COVER_LETTER_FILENAME = "cover-letter.pdf"
+
 
 
 def _load_source_pdf(session: ResumeSession) -> bytes | None:
@@ -58,8 +60,9 @@ def export_resume(request, session_id):
     try:
         pdf_bytes = service.build_resume_pdf(session, sections, source_bytes)
     except ExportError as exc:
+        _logger.exception("Resume PDF export failed for session %s: %s", session_id, exc)
         return HttpResponse(
-            f"Export failed: {exc}",
+            "Resume PDF export failed. Please try again.",
             status=500,
             content_type="text/plain",
         )
@@ -97,8 +100,11 @@ def export_cover_letter(request, session_id):
     try:
         pdf_bytes = service.build_cover_letter_pdf(draft)
     except ExportError as exc:
+        _logger.exception(
+            "Cover letter PDF export failed for session %s: %s", session_id, exc
+        )
         return HttpResponse(
-            f"Export failed: {exc}",
+            "Cover letter PDF export failed. Please try again.",
             status=500,
             content_type="text/plain",
         )
