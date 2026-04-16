@@ -113,7 +113,7 @@ jobs:
             az acr login --name ${{ env.REGISTRY_NAME }}
 
       - name: Build and push web image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile
@@ -125,7 +125,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=web
 
       - name: Build and push worker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.worker
