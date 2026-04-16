@@ -1,4 +1,4 @@
-Django==4.2.26
+Django==5.2.12
 celery==5.3
 redis==5.0
 PyMuPDF==1.24
