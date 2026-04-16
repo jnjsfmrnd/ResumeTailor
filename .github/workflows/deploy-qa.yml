@@ -104,7 +104,7 @@ jobs:
 
       # Buildx enables BuildKit features including the GitHub Actions cache driver.
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to Container Registry
         uses: azure/cli@v2
