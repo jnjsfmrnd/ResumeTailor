@@ -1,6 +1,6 @@
 Django==4.2.26
 celery==5.3
-redis==5.0
+redis==7.4.0
 PyMuPDF==1.24
 openai==1.30
 django-storages[azure]==1.14
